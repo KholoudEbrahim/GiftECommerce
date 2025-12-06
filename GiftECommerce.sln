@@ -1,0 +1,61 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36511.14 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityService", "IdentityService\IdentityService.csproj", "{8CFB2581-41A2-4F87-980A-B62E2D53FC13}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CategoryService", "CategoryService\CategoryService.csproj", "{547468E9-CA60-4871-A375-40D7DEE0E887}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CartService", "CartService\CartService.csproj", "{14925568-5DB3-495B-87C8-2AEA40BDCEE1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrderService", "OrderService\OrderService.csproj", "{E97B7947-1203-460F-9341-96FC63B69358}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OfferService", "OfferService\OfferService.csproj", "{6C18981B-0788-4052-A16D-122A30BD71D5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotificationService", "NotificationService\NotificationService.csproj", "{7F6D2AC9-A284-45F9-818B-A9B81EDD996C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiGateway", "ApiGateway\ApiGateway.csproj", "{37D10434-14FE-46F2-9710-AED7C9463569}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8CFB2581-41A2-4F87-980A-B62E2D53FC13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8CFB2581-41A2-4F87-980A-B62E2D53FC13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8CFB2581-41A2-4F87-980A-B62E2D53FC13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8CFB2581-41A2-4F87-980A-B62E2D53FC13}.Release|Any CPU.Build.0 = Release|Any CPU
+		{547468E9-CA60-4871-A375-40D7DEE0E887}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{547468E9-CA60-4871-A375-40D7DEE0E887}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{547468E9-CA60-4871-A375-40D7DEE0E887}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{547468E9-CA60-4871-A375-40D7DEE0E887}.Release|Any CPU.Build.0 = Release|Any CPU
+		{14925568-5DB3-495B-87C8-2AEA40BDCEE1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14925568-5DB3-495B-87C8-2AEA40BDCEE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14925568-5DB3-495B-87C8-2AEA40BDCEE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14925568-5DB3-495B-87C8-2AEA40BDCEE1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E97B7947-1203-460F-9341-96FC63B69358}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E97B7947-1203-460F-9341-96FC63B69358}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E97B7947-1203-460F-9341-96FC63B69358}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E97B7947-1203-460F-9341-96FC63B69358}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C18981B-0788-4052-A16D-122A30BD71D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C18981B-0788-4052-A16D-122A30BD71D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C18981B-0788-4052-A16D-122A30BD71D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C18981B-0788-4052-A16D-122A30BD71D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F6D2AC9-A284-45F9-818B-A9B81EDD996C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F6D2AC9-A284-45F9-818B-A9B81EDD996C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F6D2AC9-A284-45F9-818B-A9B81EDD996C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F6D2AC9-A284-45F9-818B-A9B81EDD996C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37D10434-14FE-46F2-9710-AED7C9463569}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37D10434-14FE-46F2-9710-AED7C9463569}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37D10434-14FE-46F2-9710-AED7C9463569}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37D10434-14FE-46F2-9710-AED7C9463569}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {37FCA723-4202-4CBD-B556-5DA428C59646}
+	EndGlobalSection
+EndGlobal
