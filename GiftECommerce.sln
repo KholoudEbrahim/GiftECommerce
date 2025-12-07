@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36511.14 d17.14
+VisualStudioVersion = 17.14.36511.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityService", "IdentityService\IdentityService.csproj", "{8CFB2581-41A2-4F87-980A-B62E2D53FC13}"
 EndProject
@@ -16,6 +16,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotificationService", "NotificationService\NotificationService.csproj", "{7F6D2AC9-A284-45F9-818B-A9B81EDD996C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiGateway", "ApiGateway\ApiGateway.csproj", "{37D10434-14FE-46F2-9710-AED7C9463569}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProductService", "ProductService\ProductService.csproj", "{15A3BAFD-D89B-42C6-8AC9-9E9E2DA2A136}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{37D10434-14FE-46F2-9710-AED7C9463569}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{37D10434-14FE-46F2-9710-AED7C9463569}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{37D10434-14FE-46F2-9710-AED7C9463569}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15A3BAFD-D89B-42C6-8AC9-9E9E2DA2A136}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15A3BAFD-D89B-42C6-8AC9-9E9E2DA2A136}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15A3BAFD-D89B-42C6-8AC9-9E9E2DA2A136}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15A3BAFD-D89B-42C6-8AC9-9E9E2DA2A136}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
