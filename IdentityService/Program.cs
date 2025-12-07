@@ -1,3 +1,4 @@
+using System;
 
 namespace IdentityService
 {
@@ -7,10 +8,18 @@ namespace IdentityService
         {
             var builder = WebApplication.CreateBuilder(args);
 
+         
+            Console.WriteLine("=== DOCKER START ===");
+            Console.WriteLine($"In Docker: {Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")}");
+            Console.WriteLine($"URLS: {Environment.GetEnvironmentVariable("ASPNETCORE_URLS")}");
+
+  
+            builder.WebHost.UseUrls("http://*:8080");
+            Console.WriteLine(" FORCED HTTP: http://*:8080");
+            Console.WriteLine("==================");
+
             // Add services to the container.
             builder.Services.AddAuthorization();
-
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
@@ -23,7 +32,8 @@ namespace IdentityService
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
+      
+            // app.UseHttpsRedirection();
 
             app.UseAuthorization();
 
