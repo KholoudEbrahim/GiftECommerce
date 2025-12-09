@@ -1,0 +1,6 @@
+@OccasionService_HostAddress = http://localhost:5062
+
+GET {{OccasionService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
