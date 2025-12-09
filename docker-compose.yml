@@ -63,3 +63,9 @@ services:
     build:
       context: .
       dockerfile: NotificationService/Dockerfile
+
+  occasionservice:
+    image: ${DOCKER_REGISTRY-}occasionservice
+    build:
+      context: .
+      dockerfile: OccasionService/Dockerfile
