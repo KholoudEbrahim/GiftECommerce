@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # Infrastructure Services
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: gift-ecommerce-sqlserver
@@ -36,12 +37,14 @@ services:
       timeout: 5s
       retries: 10
 
+  # Application Services Configuration
   identityservice:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-       - ASPNETCORE_URLS=http://+:8080  
-       - DOTNET_RUNNING_IN_CONTAINER=true 
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=IdentityDb;User=sa;Password=Strong!Passw0rd123;TrustServerCertificate=True
+      - ASPNETCORE_URLS=http://+:8080
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=IdentityDb;User Id=sa;Password=Strong!Passw0rd123;TrustServerCertificate=True
+    command: ["dotnet", "IdentityService.dll", "--urls", "http://0.0.0.0:8080"]
     depends_on:
       sqlserver:
         condition: service_healthy

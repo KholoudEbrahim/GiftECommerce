@@ -13,53 +13,54 @@ services:
       - categoryservice
 
   identityservice:
-   image: ${DOCKER_REGISTRY-}identityservice
-   build:
-    context: .
-    dockerfile: IdentityService/Dockerfile
-   ports:
-    - "5001:8080"
-   environment:
-    - ASPNETCORE_ENVIRONMENT=Development
-    - ASPNETCORE_URLS=http://+:8080
-    - DOTNET_RUNNING_IN_CONTAINER=true
-    - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=IdentityDb;User=sa;Password=Strong!Passw0rd123;TrustServerCertificate=True
-   depends_on:
-    - sqlserver
-   command: ["dotnet", "IdentityService.dll", "--urls", "http://0.0.0.0:8080"] 
-   
+    image: ${DOCKER_REGISTRY-}identityservice
+    build:
+      context: .
+      dockerfile: IdentityService/Dockerfile
+    container_name: gift-ecommerce-identity
+    ports:
+      - "5001:8080"
+    depends_on:
+      - sqlserver
+
   categoryservice:
     image: ${DOCKER_REGISTRY-}categoryservice
     build:
       context: .
       dockerfile: CategoryService/Dockerfile
+    container_name: gift-ecommerce-category
 
   productservice:
     image: ${DOCKER_REGISTRY-}productservice
     build:
       context: .
       dockerfile: ProductService/Dockerfile
+    container_name: gift-ecommerce-product
 
   cartservice:
     image: ${DOCKER_REGISTRY-}cartservice
     build:
       context: .
       dockerfile: CartService/Dockerfile
+    container_name: gift-ecommerce-cart
 
   orderservice:
     image: ${DOCKER_REGISTRY-}orderservice
     build:
       context: .
       dockerfile: OrderService/Dockerfile
+    container_name: gift-ecommerce-order
 
   offerservice:
     image: ${DOCKER_REGISTRY-}offerservice
     build:
       context: .
       dockerfile: OfferService/Dockerfile
+    container_name: gift-ecommerce-offer
 
   notificationservice:
     image: ${DOCKER_REGISTRY-}notificationservice
     build:
       context: .
       dockerfile: NotificationService/Dockerfile
+    container_name: gift-ecommerce-notification
