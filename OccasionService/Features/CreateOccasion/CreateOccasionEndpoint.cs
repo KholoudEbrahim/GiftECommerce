@@ -20,9 +20,9 @@ namespace OccasionService.Features.CreateOccasion
                         new { id = result.Value });
                 }
 
-                return result.Error switch
+                return result.Error.Code switch
                 {
-                    Shared.Error => Results.Conflict(new { error = result.Error.Message }),
+                    "DUPLICATE_NAME" => Results.Conflict(new { error = result.Error.Message }),
                     _ => Results.BadRequest(new { error = result.Error.Message })
                 };
             })
