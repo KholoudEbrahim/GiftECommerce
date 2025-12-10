@@ -1,4 +1,5 @@
 using FluentValidation;
+using FluentValidation.Validators;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OccasionService.Data;
@@ -21,8 +22,13 @@ builder.Services.AddDbContext<OccasionDbContext>(options =>
         });
 });
 
+builder.Services.AddScoped<OccasionRepository>();
+
+
 builder.Services.AddMediatR(Assembly.GetExecutingAssembly());
-builder.Services.AddMediatR(typeof(Program).Assembly, typeof(CreateOccasionCommand).Assembly);
+
+builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+
 
 builder.Services.AddMassTransit(x =>
 {
@@ -39,7 +45,6 @@ builder.Services.AddMassTransit(x =>
 });
 // Add services to the container.
 
-builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -54,7 +59,7 @@ if (app.Environment.IsDevelopment())
 }
 
 
-app.MapCreateOccasion();
+app.UseHttpsRedirection();
 
 app.MapGet("/health", () => Results.Ok(new
 {
@@ -63,11 +68,8 @@ app.MapGet("/health", () => Results.Ok(new
     timestamp = DateTime.UtcNow
 }));
 
-app.UseHttpsRedirection();
+app.MapCreateOccasion();
 
-app.UseAuthorization();
-
-app.MapControllers();
 
 using (var scope = app.Services.CreateScope())
 {

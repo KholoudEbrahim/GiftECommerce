@@ -34,21 +34,21 @@ namespace OccasionService.Data
             modelBuilder.Entity<Occasion>().HasData(
                 new Occasion
                 {
-                    Id = Guid.NewGuid(),
+                    Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
                     Name = "Wedding",
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow
                 },
                 new Occasion
                 {
-                    Id = Guid.NewGuid(),
+                    Id = Guid.Parse("22222222-2222-2222-2222-222222222222"),
                     Name = "Birthday",
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow
                 },
                 new Occasion
                 {
-                    Id = Guid.NewGuid(),
+                    Id = Guid.Parse("33333333-3333-3333-3333-333333333333"),
                     Name = "Anniversary",
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow
