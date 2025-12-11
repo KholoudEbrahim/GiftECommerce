@@ -1,42 +1,43 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using OccasionService.Features.CreateOccasion;
 
-namespace OccasionService.Features.CreateOccasion
+namespace OccasionService.Features.UpdateOccasion
 {
-    public static class CreateOccasionEndpoint
+    public static class UpdateOccasionEndpoint
     {
-        public static IEndpointRouteBuilder MapCreateOccasion(this IEndpointRouteBuilder app)
+        public static IEndpointRouteBuilder MapUpdateOccasion(this IEndpointRouteBuilder app)
         {
-            app.MapPost("/api/occasions", async (
-                [FromBody] CreateOccasionRequest request,
+            app.MapPut("/api/occasions/{id:guid}", async (
+                Guid id,
+                [FromBody] UpdateOccasionRequest request,
                 IMediator mediator) =>
             {
-                var command = new CreateOccasionCommand
+                var command = new UpdateOccasionCommand
                 {
+                    Id = id,
                     Name = request.Name,
                     IsActive = request.IsActive,
                     ImageUrl = request.ImageUrl
                 };
+
                 var result = await mediator.Send(command);
 
                 if (result.IsSuccess)
                 {
-                    return Results.Created(
-                        $"/api/occasions/{result.Value}",
-                        new { id = result.Value });
+                    return Results.NoContent();
                 }
 
                 return result.Error.Code switch
                 {
+                    "NOT_FOUND" => Results.NotFound(new { error = result.Error.Message }),
                     "DUPLICATE_NAME" => Results.Conflict(new { error = result.Error.Message }),
                     _ => Results.BadRequest(new { error = result.Error.Message })
                 };
             })
-            .WithName("CreateOccasion")
+            .WithName("UpdateOccasion")
             .WithTags("Occasions")
-            .Produces(201)
-            .Produces(400)
+            .Produces(204)
+            .Produces(404)
             .Produces(409);
 
             return app;

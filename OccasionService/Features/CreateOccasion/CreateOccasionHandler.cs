@@ -1,4 +1,5 @@
-﻿using MassTransit;
+﻿using Contracts.OccasionEvents;
+using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OccasionService.Data;
@@ -7,7 +8,7 @@ using Shared;
 
 namespace OccasionService.Features.CreateOccasion
 {
-    public class CreateOccasionHandler : IRequestHandler<CreateOccasionCommand, Result<Guid>>
+    public class CreateOccasionHandler : IRequestHandler<CreateOccasionCommand, Result<CreateOccasionRequest>>
     {
         private readonly OccasionRepository _repo;
         private readonly IPublishEndpoint _publishEndpoint;
@@ -18,13 +19,13 @@ namespace OccasionService.Features.CreateOccasion
             _publishEndpoint = publishEndpoint;
         }
 
-        public async Task<Result<Guid>> Handle(CreateOccasionCommand request, CancellationToken cancellationToken)
+        public async Task<Result<CreateOccasionRequest>> Handle(CreateOccasionCommand request, CancellationToken cancellationToken)
         {
             var existingOccasion = await _repo.ExistsByNameAsync(request.Name);
 
             if (existingOccasion)
             {
-                return Result.Failure<Guid>(
+                return Result.Failure<CreateOccasionRequest>(
                     new Error("OccasionAlreadyExists", "An occasion with the same name already exists.")
                     );
             }
@@ -38,7 +39,21 @@ namespace OccasionService.Features.CreateOccasion
 
             await _repo.AddAsync(newOccasion);
 
-            return Result.Success(newOccasion.Id);
+            await _publishEndpoint.Publish(new OccasionCreatedEvent
+            {
+                OccasionId = newOccasion.Id,
+                Name = newOccasion.Name,
+                IsActive = newOccasion.IsActive,
+                CreatedAt = newOccasion.CreatedAt
+            }, cancellationToken);
+
+            return Result.Success(new CreateOccasionRequest
+            {
+                Id = newOccasion.Id,
+                Name = newOccasion.Name,
+                IsActive = newOccasion.IsActive,
+                CreatedAt = newOccasion.CreatedAt
+            });
 
         }
     }
