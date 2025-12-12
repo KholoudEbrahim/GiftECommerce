@@ -1,4 +1,4 @@
-﻿using IdentityService.Shared;
+﻿using IdentityService.Features.Shared;
 using MediatR;
 
 namespace IdentityService.Features.Commands.SignUp

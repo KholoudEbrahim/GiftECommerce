@@ -1,8 +1,8 @@
 ﻿using FluentValidation;
 using IdentityService.Data;
+using IdentityService.Features.Shared;
 using IdentityService.Models;
 using IdentityService.Services;
-using IdentityService.Shared;
 using MediatR;
 
 namespace IdentityService.Features.Commands.SignUp
@@ -19,13 +19,13 @@ namespace IdentityService.Features.Commands.SignUp
 
     public class SignUpCommandHandler : IRequestHandler<SignUpCommand, RequestResponse<SignUpResponseDto>>
     {
-        private readonly IUserRepository _userRepository;
+        private readonly IRepository _userRepository;
         private readonly IPasswordService _passwordService;
         private readonly IValidator<SignUpCommand> _validator;
         private readonly ILogger<SignUpCommandHandler> _logger;
 
         public SignUpCommandHandler(
-            IUserRepository userRepository,
+            IRepository userRepository,
             IPasswordService passwordService,
             IValidator<SignUpCommand> validator,
             ILogger<SignUpCommandHandler> logger)

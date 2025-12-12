@@ -2,7 +2,7 @@
 
 namespace IdentityService.Data
 {
-    public interface IUserRepository
+    public interface IRepository
     {
         Task<User?> GetByIdAsync(Guid id);
         Task<User?> GetByEmailAsync(string email);
