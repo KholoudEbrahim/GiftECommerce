@@ -114,7 +114,7 @@ public class SignUpCommandHandler : IRequestHandler<SignUpCommand, RequestRespon
         {
             _logger.LogError(ex, "Error during user registration for email: {Email}", request.Email);
             return RequestResponse<SignUpResponseDto>.Fail("An error occurred during registration", 500);
-        }
+         }
     }
 }
  
