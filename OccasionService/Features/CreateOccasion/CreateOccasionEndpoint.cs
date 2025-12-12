@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using OccasionService.Features.CreateOccasion;
 
 namespace OccasionService.Features.CreateOccasion
 {
@@ -8,9 +9,15 @@ namespace OccasionService.Features.CreateOccasion
         public static IEndpointRouteBuilder MapCreateOccasion(this IEndpointRouteBuilder app)
         {
             app.MapPost("/api/occasions", async (
-                [FromBody] CreateOccasionCommand command,
+                [FromBody] CreateOccasionRequest request,
                 IMediator mediator) =>
             {
+                var command = new CreateOccasionCommand
+                {
+                    Name = request.Name,
+                    IsActive = request.IsActive,
+                    ImageUrl = request.ImageUrl
+                };
                 var result = await mediator.Send(command);
 
                 if (result.IsSuccess)

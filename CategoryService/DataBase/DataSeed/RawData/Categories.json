@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "Flowers",
+        "Status": "Active",
+        "ImageUrl": "flowers.png",
+        "IsDeleted": false
+    },
+    {
+        "Name": "Gifts",
+        "Status": "Active",
+        "ImageUrl": "gifts.png",
+        "IsDeleted": false
+    },
+    {
+        "Name": "Cards",
+        "Status": "Active",
+        "ImageUrl": "cards.png",
+        "IsDeleted": false
+    }
+]

@@ -99,7 +99,19 @@ services:
       - ASPNETCORE_HTTPS_PORTS=8081
     depends_on:
       - rabbit
-
+  
+  occasionservice:
+    environment:
+     - ASPNETCORE_ENVIRONMENT=Development
+     - ASPNETCORE_URLS=http://+:8080
+     - DOTNET_RUNNING_IN_CONTAINER=true
+     - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=OccasionDb;User Id=sa;Password=Strong!Passw0rd123;TrustServerCertificate=True
+    command: ["dotnet", "OccasionService.dll", "--urls", "http://0.0.0.0:8080"] 
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+       
+  
   gateway:
     depends_on:
       - identityservice

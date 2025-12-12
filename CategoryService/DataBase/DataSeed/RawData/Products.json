@@ -1,0 +1,18 @@
+[
+    {
+        "Name": "Red Rose Bouquet",
+        "Description": "15 Red Roses",
+        "Price": 1500.00,
+        "Status": 1,
+        "CategoryId": 1,
+        "IsDeleted": false
+    },
+    {
+        "Name": "Crystal Vase",
+        "Description": "Elegant glass vase",
+        "Price": 500.00,
+        "Status": 1,
+        "CategoryId": 2,
+        "IsDeleted": false
+    }
+]

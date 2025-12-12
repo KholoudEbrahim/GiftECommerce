@@ -1,4 +1,4 @@
-﻿namespace IdentityService.Shared
+﻿namespace IdentityService.Features.Shared
 {
     public record RequestResponse<T>(T Data, string Message = "", bool IsSuccess = true, int StatusCode = 200)
     {
