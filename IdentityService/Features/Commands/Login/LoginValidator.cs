@@ -12,6 +12,14 @@ namespace IdentityService.Features.Commands.Login
 
             RuleFor(x => x.Password)
                 .NotEmpty().WithMessage("Password is required");
+
+
+            When(x => !string.IsNullOrEmpty(x.RequiredRole), () =>
+            {
+                RuleFor(x => x.RequiredRole)
+                    .Must(role => role == "Admin" || role == "User" || role == "Moderator")
+                    .WithMessage("Invalid role specified");
+            });
         }
     }
 }

@@ -1,8 +1,8 @@
 ﻿using FluentValidation;
 using IdentityService.Data;
+using IdentityService.Features.Shared;
 using IdentityService.Models;
 using IdentityService.Services;
-using IdentityService.Shared;
 using MediatR;
 
 namespace IdentityService.Features.Commands.SignUp;
@@ -30,6 +30,7 @@ public class SignUpCommandHandler : IRequestHandler<SignUpCommand, RequestRespon
         IValidator<SignUpCommand> validator,
         ILogger<SignUpCommandHandler> logger)
     {
+<<<<<<< HEAD
         _userRepository = userRepository;
         _passwordService = passwordService;
         _validator = validator;
@@ -41,6 +42,18 @@ public class SignUpCommandHandler : IRequestHandler<SignUpCommand, RequestRespon
         CancellationToken cancellationToken)
     {
         try
+=======
+        private readonly IRepository _userRepository;
+        private readonly IPasswordService _passwordService;
+        private readonly IValidator<SignUpCommand> _validator;
+        private readonly ILogger<SignUpCommandHandler> _logger;
+
+        public SignUpCommandHandler(
+            IRepository userRepository,
+            IPasswordService passwordService,
+            IValidator<SignUpCommand> validator,
+            ILogger<SignUpCommandHandler> logger)
+>>>>>>> 618ef798b400f9239616a518e96b7c277770fe3c
         {
 
             var validationResult = await _validator.ValidateAsync(request, cancellationToken);

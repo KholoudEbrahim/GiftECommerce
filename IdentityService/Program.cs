@@ -1,16 +1,19 @@
 using FluentValidation;
 using IdentityService.Data;
 using IdentityService.Features.Commands.Login;
+using IdentityService.Features.Commands.PasswordReset;
 using IdentityService.Features.Commands.SignUp;
+using IdentityService.Features.Shared;
 using IdentityService.Services;
-using IdentityService.Shared;
 using MediatR;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
 using System;
+using System.Text.Json;
 using static IdentityService.Features.Commands.Login.LoginCommand;
+using static IdentityService.Features.Commands.PasswordReset.ResetPasswordCommand;
+using static IdentityService.Features.Commands.PasswordReset.VerifyResetCodeCommand;
 
 namespace IdentityService
 {
@@ -33,15 +36,24 @@ namespace IdentityService
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
     
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IRepository, Repository>();
 
  
             builder.Services.AddScoped<IPasswordService, PasswordService>();
             builder.Services.AddScoped<ITokenService, TokenService>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
+
 
             builder.Services.AddScoped<IValidator<SignUpCommand>, SignUpValidator>();
             builder.Services.AddScoped<IValidator<LoginCommand>, LoginValidator>();
+            builder.Services.AddScoped<IValidator<VerifyResetCodeCommand>, VerifyResetCodeValidator>();
+            builder.Services.AddScoped<IValidator<ResetPasswordCommand>, ResetPasswordValidator>();
 
+
+            builder.Services.AddScoped<IRequestHandler<RequestPasswordResetCommand, RequestResponse<RequestPasswordResetResponseDto>>, RequestPasswordResetCommandHandler>();
+            builder.Services.AddScoped<IRequestHandler<VerifyResetCodeCommand, RequestResponse<VerifyResetCodeResponseDto>>, VerifyResetCodeCommandHandler>();
+            builder.Services.AddScoped<IRequestHandler<ResendResetCodeCommand, RequestResponse<RequestPasswordResetResponseDto>>, ResendResetCodeCommandHandler>();
+            builder.Services.AddScoped<IRequestHandler<ResetPasswordCommand, RequestResponse<ResetPasswordResponseDto>>, ResetPasswordCommandHandler>();
             builder.Services.AddScoped<IRequestHandler<SignUpCommand, RequestResponse<SignUpResponseDto>>, SignUpCommandHandler>();
             builder.Services.AddScoped<IRequestHandler<LoginCommand, RequestResponse<LoginResponseDto>>, LoginCommandHandler>();
 
@@ -52,8 +64,8 @@ namespace IdentityService
                 options.SerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
             });
 
-
-
+            builder.Services.AddMediatR(cfg =>
+              cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
             builder.Services.AddAuthorization();
             builder.Services.AddEndpointsApiExplorer();
@@ -70,7 +82,15 @@ namespace IdentityService
 
             app.UseHttpsRedirection();
 
-    
+            using (var scope = app.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+                dbContext.Database.Migrate(); 
+            }
+
+            app.MapRequestPasswordResetEndpoint();
+            app.MapPasswordResetEndpoints();
+            app.MapResetPasswordEndpoint();
             app.MapSignUpEndpoint();
             app.MapLoginEndpoint();
 
