@@ -2,12 +2,11 @@
 using System;
 
 
-namespace OccasionService.Models
+namespace OccasionService.Models;
+
+public class Occasion : BaseEntity<int>
 {
-    public class Occasion : BaseEntity
-    {
-        public string Name { get; set; } = string.Empty;
-        public bool IsActive { get; set; } = true;
-        public string? ImageUrl { get; set; }
-    }
+    public string Name { get; set; } = string.Empty;
+    public bool IsActive { get; set; } = true;
+    public string? ImageUrl { get; set; }
 }

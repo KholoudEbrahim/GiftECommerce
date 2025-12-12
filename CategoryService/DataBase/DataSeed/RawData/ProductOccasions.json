@@ -1,0 +1,14 @@
+[
+    {
+        "ProductId": 1,
+        "OccasionId": 1
+    },
+    {
+        "ProductId": 1,
+        "OccasionId": 3
+    },
+    {
+        "ProductId": 2,
+        "OccasionId": 1
+    }
+]

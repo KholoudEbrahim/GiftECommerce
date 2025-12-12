@@ -1,8 +1,7 @@
-﻿using Contracts.OccasionEvents;
-using MassTransit;
+﻿using MassTransit;
 using MediatR;
 using OccasionService.Data;
-using Shared;
+using Shared.ApiResultResponse;
 
 namespace OccasionService.Features.ToggleOccasionStatus
 {
@@ -35,12 +34,12 @@ namespace OccasionService.Features.ToggleOccasionStatus
             _repo.Update(occasion);
             await _repo.SaveChangesAsync();
 
-            await _publishEndpoint.Publish(new OccasionToggledStatusEvent
-            {
-                OccasionId = occasion.Id,
-                IsActive = occasion.IsActive,
-                ToggledAt = DateTime.UtcNow
-            }, cancellationToken);
+            //await _publishEndpoint.Publish(new OccasionToggledStatusEvent
+            //{
+            //    OccasionId = occasion.Id,
+            //    IsActive = occasion.IsActive,
+            //    ToggledAt = DateTime.UtcNow
+            //}, cancellationToken);
 
             return Result.Success();
         }

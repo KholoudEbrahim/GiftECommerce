@@ -1,8 +1,7 @@
-﻿using Contracts.OccasionEvents;
-using MassTransit;
+﻿using MassTransit;
 using MediatR;
 using OccasionService.Data;
-using Shared;
+using Shared.ApiResultResponse;
 
 namespace OccasionService.Features.DeleteOccasion
 {
@@ -28,11 +27,11 @@ namespace OccasionService.Features.DeleteOccasion
             _repo.Delete(occasion);
             await _repo.SaveChangesAsync();
 
-            await _publishEndpoint.Publish(new OccasionDeletedEvent
-            {
-                OccasionId = occasion.Id,
-                DeletedAt = DateTime.UtcNow,
-            }, cancellationToken);
+            //await _publishEndpoint.Publish(new OccasionDeletedEvent
+            //{
+            //    OccasionId = occasion.Id,
+            //    DeletedAt = DateTime.UtcNow,
+            //}, cancellationToken);
 
 
             return Result.Success();
