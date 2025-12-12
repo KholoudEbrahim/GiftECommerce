@@ -105,3 +105,4 @@ namespace IdentityService.Features.Commands.SignUp
         }
     }
 }
+ 
