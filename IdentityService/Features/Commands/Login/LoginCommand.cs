@@ -4,7 +4,11 @@ using IdentityService.Features.Shared;
 using IdentityService.Services;
 using MediatR;
 
-namespace IdentityService.Features.Commands.Login
+namespace IdentityService.Features.Commands.Login;
+
+public record LoginCommand(string Email,string Password) : IRequest<RequestResponse<LoginResponseDto>>;
+
+public class LoginCommandHandler : IRequestHandler<LoginCommand, RequestResponse<LoginResponseDto>>
 {
     public record LoginCommand(
        string Email,
@@ -14,7 +18,7 @@ namespace IdentityService.Features.Commands.Login
     {
         public class LoginCommandHandler : IRequestHandler<LoginCommand, RequestResponse<LoginResponseDto>>
         {
-            private readonly IRepository _userRepository;
+            private readonly IRepository _Repository;
             private readonly IPasswordService _passwordService;
             private readonly ITokenService _tokenService;
             private readonly IValidator<LoginCommand> _validator;
@@ -27,18 +31,9 @@ namespace IdentityService.Features.Commands.Login
                 IValidator<LoginCommand> validator,
                 ILogger<LoginCommandHandler> logger)
             {
-                _userRepository = userRepository;
-                _passwordService = passwordService;
-                _tokenService = tokenService;
-                _validator = validator;
-                _logger = logger;
-            }
-
-            public async Task<RequestResponse<LoginResponseDto>> Handle(
-                LoginCommand request,
-                CancellationToken cancellationToken)
-            {
-                try
+       
+                var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+                if (!validationResult.IsValid)
                 {
                     var validationResult = await _validator.ValidateAsync(request, cancellationToken);
                     if (!validationResult.IsValid)
@@ -106,10 +101,29 @@ namespace IdentityService.Features.Commands.Login
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error during login for email: {Email}", request.Email);
-                    return RequestResponse<LoginResponseDto>.Fail("An error occurred during login", 500);
-                }
+                    UserId = user.Id,
+                    Email = user.Email,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Role = user.Role,
+                    Token = jwtToken,
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(15),
+                    RefreshToken = refreshToken.Token,
+                    RefreshTokenExpiresAt = refreshToken.ExpiresAt
+                };
+
+                _logger.LogInformation("User logged in successfully: {Email}", user.Email);
+
+                return RequestResponse<LoginResponseDto>.Success(
+                    responseDto,
+                    "Login successful",
+                    200
+                );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during login for email: {Email}", request.Email);
+                return RequestResponse<LoginResponseDto>.Fail("An error occurred during login", 500);
             }
         }
-    }
 }

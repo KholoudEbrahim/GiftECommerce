@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "Wedding",
+        "Status": "Active",
+        "ImageUrl": "wedding.png",
+        "IsDeleted": false
+    },
+    {
+        "Name": "Birthday",
+        "Status": "Active",
+        "ImageUrl": "birthday.png",
+        "IsDeleted": false
+    },
+    {
+        "Name": "Valentine",
+        "Status": "Active",
+        "ImageUrl": "valentine.png",
+        "IsDeleted": false
+    }
+]
