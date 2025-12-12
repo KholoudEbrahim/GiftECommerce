@@ -14,7 +14,8 @@ namespace IdentityService.Data
 
         public DbSet<User> Users { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
-
+        public DbSet<PasswordResetRequest> PasswordResetRequests { get; set; }
+    
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -69,6 +70,28 @@ namespace IdentityService.Data
                     .WithMany(u => u.RefreshTokens)
                     .HasForeignKey(e => e.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+
+            modelBuilder.Entity<PasswordResetRequest>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.Email);
+                entity.HasIndex(e => e.ResetCode).IsUnique();
+
+                entity.Property(e => e.Email)
+                    .IsRequired()
+                    .HasMaxLength(255);
+
+                entity.Property(e => e.ResetCode)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.ExpiresAt)
+                    .IsRequired();
+
+                entity.Property(e => e.CreatedAt)
+                    .HasDefaultValueSql("GETUTCDATE()");
             });
         }
     }

@@ -1,26 +1,27 @@
 ﻿using FluentValidation;
 using IdentityService.Data;
+using IdentityService.Features.Shared;
 using IdentityService.Services;
-using IdentityService.Shared;
 using MediatR;
 
 namespace IdentityService.Features.Commands.Login
 {
     public record LoginCommand(
        string Email,
-       string Password
+       string Password,
+       string? RequiredRole = null 
    ) : IRequest<RequestResponse<LoginResponseDto>>
     {
         public class LoginCommandHandler : IRequestHandler<LoginCommand, RequestResponse<LoginResponseDto>>
         {
-            private readonly IUserRepository _userRepository;
+            private readonly IRepository _userRepository;
             private readonly IPasswordService _passwordService;
             private readonly ITokenService _tokenService;
             private readonly IValidator<LoginCommand> _validator;
             private readonly ILogger<LoginCommandHandler> _logger;
 
             public LoginCommandHandler(
-                IUserRepository userRepository,
+                IRepository userRepository,
                 IPasswordService passwordService,
                 ITokenService tokenService,
                 IValidator<LoginCommand> validator,
@@ -39,7 +40,6 @@ namespace IdentityService.Features.Commands.Login
             {
                 try
                 {
-           
                     var validationResult = await _validator.ValidateAsync(request, cancellationToken);
                     if (!validationResult.IsValid)
                     {
@@ -47,7 +47,6 @@ namespace IdentityService.Features.Commands.Login
                         return RequestResponse<LoginResponseDto>.Fail(errorMessages, 400);
                     }
 
-          
                     var user = await _userRepository.GetByEmailAsync(request.Email);
                     if (user == null)
                     {
@@ -55,7 +54,16 @@ namespace IdentityService.Features.Commands.Login
                         return RequestResponse<LoginResponseDto>.Fail("Invalid email or password", 401);
                     }
 
-  
+
+                    if (!string.IsNullOrEmpty(request.RequiredRole)
+                        && !string.Equals(user.Role, request.RequiredRole, StringComparison.OrdinalIgnoreCase))
+                    {
+                        _logger.LogWarning(
+                            "Role mismatch for {Email}. Required: {RequiredRole}, Actual: {ActualRole}",
+                            request.Email, request.RequiredRole, user.Role);
+                        return RequestResponse<LoginResponseDto>.Fail("Access denied. Insufficient permissions.", 403);
+                    }
+
                     if (!user.IsActive)
                     {
                         _logger.LogWarning("Login attempt for inactive user: {Email}", request.Email);
@@ -68,17 +76,12 @@ namespace IdentityService.Features.Commands.Login
                         return RequestResponse<LoginResponseDto>.Fail("Invalid email or password", 401);
                     }
 
-
                     user.LastLoginAt = DateTime.UtcNow;
                     await _userRepository.UpdateAsync(user);
 
-      
                     var jwtToken = _tokenService.GenerateJwtToken(user);
-
-   
                     var refreshToken = await _tokenService.CreateRefreshTokenAsync(user.Id);
 
-      
                     var responseDto = new LoginResponseDto
                     {
                         UserId = user.Id,
@@ -92,7 +95,8 @@ namespace IdentityService.Features.Commands.Login
                         RefreshTokenExpiresAt = refreshToken.ExpiresAt
                     };
 
-                    _logger.LogInformation("User logged in successfully: {Email}", user.Email);
+                    _logger.LogInformation("User logged in successfully: {Email} (Role: {Role})",
+                        user.Email, user.Role);
 
                     return RequestResponse<LoginResponseDto>.Success(
                         responseDto,

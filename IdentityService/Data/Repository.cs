@@ -4,11 +4,11 @@ using System;
 
 namespace IdentityService.Data
 {
-    public class UserRepository : IUserRepository
+    public class Repository : IRepository
     {
         private readonly IdentityDbContext _context;
 
-        public UserRepository(IdentityDbContext context)
+        public Repository(IdentityDbContext context)
         {
             _context = context;
         }
