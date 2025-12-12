@@ -105,7 +105,7 @@ services:
      - ASPNETCORE_ENVIRONMENT=Development
      - ASPNETCORE_URLS=http://+:8080
      - DOTNET_RUNNING_IN_CONTAINER=true
-     - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=OccasionDb;User=sa;Password=Strong!Passw0rd123;TrustServerCertificate=True
+     - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=OccasionDb;User Id=sa;Password=Strong!Passw0rd123;TrustServerCertificate=True
     command: ["dotnet", "OccasionService.dll", "--urls", "http://0.0.0.0:8080"] 
     depends_on:
       sqlserver:
