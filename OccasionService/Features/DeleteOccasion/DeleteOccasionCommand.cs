@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using Shared;
+using Shared.ApiResultResponse;
 
 namespace OccasionService.Features.DeleteOccasion
 {

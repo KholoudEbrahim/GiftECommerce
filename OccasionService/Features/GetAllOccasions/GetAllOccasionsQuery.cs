@@ -2,6 +2,7 @@
 using OccasionService.Data;
 using OccasionService.Models;
 using Shared;
+using Shared.ApiResultResponse;
 
 namespace OccasionService.Features.GetAllOccasions
 {

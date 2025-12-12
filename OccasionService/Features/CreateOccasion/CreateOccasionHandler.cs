@@ -1,10 +1,9 @@
-﻿using Contracts.OccasionEvents;
-using MassTransit;
+﻿using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OccasionService.Data;
 using OccasionService.Models;
-using Shared;
+using Shared.ApiResultResponse;
 
 namespace OccasionService.Features.CreateOccasion
 {
@@ -38,21 +37,22 @@ namespace OccasionService.Features.CreateOccasion
             };
 
             await _repo.AddAsync(newOccasion);
+            await _repo.SaveChangesAsync();
 
-            await _publishEndpoint.Publish(new OccasionCreatedEvent
-            {
-                OccasionId = newOccasion.Id,
-                Name = newOccasion.Name,
-                IsActive = newOccasion.IsActive,
-                CreatedAt = newOccasion.CreatedAt
-            }, cancellationToken);
+            //await _publishEndpoint.Publish(new OccasionCreatedEvent
+            //{
+            //    OccasionId = newOccasion.Id,
+            //    Name = newOccasion.Name,
+            //    IsActive = newOccasion.IsActive,
+            //    CreatedAt = newOccasion.CreatedAt
+            //}, cancellationToken);
 
             return Result.Success(new CreateOccasionRequest
             {
                 Id = newOccasion.Id,
                 Name = newOccasion.Name,
                 IsActive = newOccasion.IsActive,
-                CreatedAt = newOccasion.CreatedAt
+                CreatedAt = newOccasion.CreatedAtUtc
             });
 
         }

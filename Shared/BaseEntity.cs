@@ -1,13 +1,11 @@
-﻿using System;
+﻿namespace Shared;
 
-namespace Shared
+public abstract class BaseEntity<TKey>
 {
-    public abstract class BaseEntity
-    {
-        public Guid Id { get; set; } = Guid.NewGuid();
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime? UpdatedAt { get; set; }
-        public bool IsDeleted { get; set; } = false;
+    public TKey Id { get; set; }
 
-    }
+    public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+    public DateTime? UpdatedAtUtc { get; set; }
+    public bool IsDeleted { get; set; } = false;
+
 }
