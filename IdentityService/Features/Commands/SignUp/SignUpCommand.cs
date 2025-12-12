@@ -17,24 +17,25 @@ namespace IdentityService.Features.Commands.SignUp
        string Gender
    ) : IRequest<RequestResponse<SignUpResponseDto>>;
 
-    public class SignUpCommandHandler : IRequestHandler<SignUpCommand, RequestResponse<SignUpResponseDto>>
-    {
-        private readonly IUserRepository _userRepository;
-        private readonly IPasswordService _passwordService;
-        private readonly IValidator<SignUpCommand> _validator;
-        private readonly ILogger<SignUpCommandHandler> _logger;
+public class SignUpCommandHandler : IRequestHandler<SignUpCommand, RequestResponse<SignUpResponseDto>>
+{
+    private readonly IRepository _Repository;
+    private readonly IPasswordService _passwordService;
+    private readonly IValidator<SignUpCommand> _validator;
+    private readonly ILogger<SignUpCommandHandler> _logger;
 
-        public SignUpCommandHandler(
-            IUserRepository userRepository,
-            IPasswordService passwordService,
-            IValidator<SignUpCommand> validator,
-            ILogger<SignUpCommandHandler> logger)
-        {
-            _userRepository = userRepository;
-            _passwordService = passwordService;
-            _validator = validator;
-            _logger = logger;
-        }
+    public SignUpCommandHandler(
+        IRepository Repository,
+        IPasswordService passwordService,
+        IValidator<SignUpCommand> validator,
+        ILogger<SignUpCommandHandler> logger)
+    {
+
+        _Repository = Repository;
+        _passwordService = passwordService;
+        _validator = validator;
+        _logger = logger;
+    }
 
         public async Task<RequestResponse<SignUpResponseDto>> Handle(
             SignUpCommand request,
