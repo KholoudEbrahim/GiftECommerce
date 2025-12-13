@@ -52,7 +52,7 @@ namespace IdentityService.Features.Commands.Login
             .Produces<EndpointResponse<LoginResponseDto>>(403)
             .Produces<EndpointResponse<LoginResponseDto>>(500);
 
-           
+
             app.MapPost("/api/auth/login/{role}", async (
                 string role,
                 LoginCommand command,
@@ -73,7 +73,7 @@ namespace IdentityService.Features.Commands.Login
             .Produces<EndpointResponse<LoginResponseDto>>(400)
             .Produces<EndpointResponse<LoginResponseDto>>(401)
             .Produces<EndpointResponse<LoginResponseDto>>(403)
-            .Produces<EndpointResponse<LoginResponseDto>>(500)
+            .Produces<EndpointResponse<LoginResponseDto>>(500);
            // .ExcludeFromDescription();
         }
     }

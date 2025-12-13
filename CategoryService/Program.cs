@@ -5,6 +5,9 @@ using CategoryService.DataBase;
 using CategoryService.Extensions;
 using CategoryService.shared.Services;
 using FluentValidation;
+using MediatR;
+using RabbitMQ;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 namespace CategoryService;
