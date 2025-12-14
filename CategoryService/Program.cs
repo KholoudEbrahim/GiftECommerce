@@ -6,9 +6,9 @@ using CategoryService.Extensions;
 using CategoryService.shared.Services;
 using FluentValidation;
 using MediatR;
-using RabbitMQ;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 
 namespace CategoryService;
 
