@@ -41,13 +41,11 @@ namespace CategoryService.Features.Occasions
         {
             private readonly IGenericRepository<Occasion, int> _repository;
             private readonly IValidator<UpdateOccasionCommand> _validator;
-            private readonly IPublishEndpoint _publishEndpoint;
 
-            public UpdateOccasionHandler(IGenericRepository<Occasion, int> repository, IValidator<UpdateOccasionCommand> validator, IPublishEndpoint publishEndpoint)
+            public UpdateOccasionHandler(IGenericRepository<Occasion, int> repository, IValidator<UpdateOccasionCommand> validator)
             {
                 _repository = repository;
                 _validator = validator;
-                _publishEndpoint = publishEndpoint;
             }
 
             public async Task<Result<bool>> Handle(UpdateOccasionCommand request, CancellationToken cancellationToken)
@@ -82,13 +80,13 @@ namespace CategoryService.Features.Occasions
                 string[] UpdatedValues = [nameof(occasion.Name), nameof(occasion.ImageUrl), nameof(occasion.Status)];
                 _repository.SaveInclude(occasion, UpdatedValues);
 
-                await _publishEndpoint.Publish(new OccasionUpdatedEvent
-                {
-                    OccasionId = occasion.Id,
-                    Name = occasion.Name,
-                    UpdatedAt = DateTime.UtcNow,
-                    IsActive = occasion.Status == OccasionStatus.Active,
-                }, cancellationToken);
+                //await _publishEndpoint.Publish(new OccasionUpdatedEvent
+                //{
+                //    OccasionId = occasion.Id,
+                //    Name = occasion.Name,
+                //    UpdatedAt = DateTime.UtcNow,
+                //    IsActive = occasion.Status == OccasionStatus.Active,
+                //}, cancellationToken);
 
 
                 return Result.Success(true);

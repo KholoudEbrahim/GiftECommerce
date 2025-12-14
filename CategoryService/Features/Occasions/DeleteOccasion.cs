@@ -23,18 +23,14 @@ namespace CategoryService.Features.Occasions
         internal sealed class Handler : IRequestHandler<DeleteOccasionCommand, Result<bool>>
         {
             private readonly IGenericRepository<Occasion, int> _occasionRepository;
-            private readonly IGenericRepository<Product, int> _productRepository;
             private readonly IValidator<DeleteOccasionCommand> _validator;
-            private readonly IPublishEndpoint _publishEndpoint;
 
 
 
-            public Handler(IGenericRepository<Occasion, int> occasionRepository, IValidator<DeleteOccasionCommand> validator, IGenericRepository<Product, int> productRepository, IPublishEndpoint publishEndpoint)
+            public Handler(IGenericRepository<Occasion, int> occasionRepository, IValidator<DeleteOccasionCommand> validator)
             {
                 _occasionRepository = occasionRepository;
-                _productRepository = productRepository;
                 _validator = validator;
-                _publishEndpoint = publishEndpoint;
             }
             public async Task<Result<bool>> Handle(DeleteOccasionCommand request, CancellationToken cancellationToken)
             {
@@ -50,13 +46,25 @@ namespace CategoryService.Features.Occasions
                     );
                 }
 
+                bool hasProducts = await _occasionRepository.AnyAsync(
+                o => o.Id == request.Id && o.ProductOccasions.Any(),
+                cancellationToken);
+
+                if (hasProducts)
+                {
+                    return Result.Failure<bool>(
+                        new Error("Occasion.HasDependencies",
+                            "Cannot delete occasion because it has assigned products."));
+                }
+
+
                 await _occasionRepository.DeleteAsync(request.Id);
 
-                await _publishEndpoint.Publish(new OccasionDeletedEvent
-                {
-                    OccasionId = occasion.Id,
-                    DeletedAt = DateTime.UtcNow,
-                }, cancellationToken);
+                //await _publishEndpoint.Publish(new OccasionDeletedEvent
+                //{
+                //    OccasionId = occasion.Id,
+                //    DeletedAt = DateTime.UtcNow,
+                //}, cancellationToken);
 
                 return Result.Success(true);
             }

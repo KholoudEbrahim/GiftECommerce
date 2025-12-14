@@ -39,12 +39,10 @@ namespace CategoryService.Features.Occasions
         {
             private readonly IGenericRepository<Occasion,int> _repo;
             private readonly IValidator<CreateOccasionCommand> _validator;
-            private readonly IPublishEndpoint _publishEndpoint;
 
-            public CreateOccasionHandler(IGenericRepository<Occasion,int> repo, IPublishEndpoint publishEndpoint, IValidator validator)
+            public CreateOccasionHandler(IGenericRepository<Occasion,int> repo, IValidator validator)
             {
                 _repo = repo;
-                _publishEndpoint = publishEndpoint;
                 _validator = (IValidator<CreateOccasionCommand>?)validator;
             }
 
@@ -76,13 +74,13 @@ namespace CategoryService.Features.Occasions
                 await _repo.AddAsync(newOccasion);
                 await _repo.SaveChangesAsync();
 
-                await _publishEndpoint.Publish(new OccasionCreatedEvent
-                {
-                    OccasionId = newOccasion.Id,
-                    Name = newOccasion.Name,
-                    IsActive = newOccasion.Status == OccasionStatus.Active,
-                    CreatedAt = newOccasion.CreatedAtUtc,
-                }, cancellationToken);
+                //await _publishEndpoint.Publish(new OccasionCreatedEvent
+                //{
+                //    OccasionId = newOccasion.Id,
+                //    Name = newOccasion.Name,
+                //    IsActive = newOccasion.Status == OccasionStatus.Active,
+                //    CreatedAt = newOccasion.CreatedAtUtc,
+                //}, cancellationToken);
 
                 return Result.Success(newOccasion.Id);
 

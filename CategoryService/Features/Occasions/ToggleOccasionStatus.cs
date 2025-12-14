@@ -26,14 +26,12 @@ namespace CategoryService.Features.Occasions
         internal sealed class Handler : IRequestHandler<ToggleOccasionStatusCommand, Result<int>>
         {
             private readonly IGenericRepository<Occasion, int> _repository;
-            private readonly IPublishEndpoint _publishEndpoint;
             private readonly IValidator<ToggleOccasionStatusCommand> _validator;
 
 
-            public Handler(IGenericRepository<Occasion, int> repository, IPublishEndpoint publishEndpoint, IValidator<ToggleOccasionStatusCommand> validator)
+            public Handler(IGenericRepository<Occasion, int> repository, IValidator<ToggleOccasionStatusCommand> validator)
             {
                 _repository = repository;
-                _publishEndpoint = publishEndpoint;
                 _validator = validator;
             }
  

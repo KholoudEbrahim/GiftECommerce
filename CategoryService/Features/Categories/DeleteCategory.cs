@@ -24,15 +24,13 @@ public static class DeleteCategory
     internal sealed class Handler : IRequestHandler<Command, Result<bool>>
     {
         private readonly IGenericRepository<Category, int> _categoryRepository;
-        private readonly IGenericRepository<Product, int> _productRepository;
         private readonly IValidator<Command> _validator;
 
         
 
-        public Handler(IGenericRepository<Category, int> categoryRepository, IValidator<Command> validator, IGenericRepository<Product, int> productRepository)
+        public Handler(IGenericRepository<Category, int> categoryRepository, IValidator<Command> validator)
         {
             _categoryRepository = categoryRepository;
-            _productRepository = productRepository;
             _validator = validator;
         }
 
@@ -49,7 +47,10 @@ public static class DeleteCategory
                 return Result.Failure<bool>(new Error("Category.NotFound", $"Category with Id {request.Id} was not found."));
             }
 
-            bool hasProducts = await _productRepository.AnyAsync(p => p.CategoryId == request.Id && !p.IsDeleted, cancellationToken);
+            bool hasProducts = await _categoryRepository.AnyAsync(
+                            c => c.Id == request.Id && c.Products.Any(p => !p.IsDeleted),
+                            cancellationToken);
+
             if (hasProducts)
             {
                 return Result.Failure<bool>(new Error("Category.HasDependencies", "Cannot delete category because it has assigned products."));

@@ -14,6 +14,7 @@ using System.Text.Json;
 using static IdentityService.Features.Commands.Login.LoginCommand;
 using static IdentityService.Features.Commands.PasswordReset.ResetPasswordCommand;
 using static IdentityService.Features.Commands.PasswordReset.VerifyResetCodeCommand;
+using static IdentityService.Features.Commands.SignUp.SignUpCommand;
 
 namespace IdentityService
 {
