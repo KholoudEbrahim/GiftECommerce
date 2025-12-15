@@ -51,7 +51,7 @@ public class Program
 
 
 
-
+        builder.Services.AddMassTransitConfiguration(builder.Configuration);
 
 
         // =================================================================
