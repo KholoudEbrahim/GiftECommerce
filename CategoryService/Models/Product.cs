@@ -12,8 +12,22 @@ public class Product : BaseEntity<int>
     public ProductStatus Status { get; set; } = ProductStatus.InStock; // InStock, OutOfStock
     public string? ImageUrl { get; set; }
 
+    public string? Tags { get; set; } // Stored as JSON or comma-separated
+
     public int CategoryId { get; set; }
     public Category? Category { get; set; }    
     public ICollection<ProductOccasion> ProductOccasions { get; set; } = new List<ProductOccasion>();
+
+    public List<string> TagsList
+    {
+        get => string.IsNullOrWhiteSpace(Tags)
+            ? new List<string>()
+            : Tags.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                  .Select(t => t.Trim())
+                  .ToList();
+        set => Tags = value != null && value.Any()
+            ? string.Join(",", value.Select(t => t.Trim()))
+            : null;
+    }
 
 }
