@@ -77,6 +77,85 @@ namespace CategoryService.Features.Products.ProductEndpoints
             })
             .WithName("DeleteProduct")
             .WithSummary("Deletes a product (US-A11)");
+
+
+            // 4. ACTIVATE PRODUCT
+            group.MapPatch("/{id}/activate", async (int id, ISender sender) =>
+            {
+                var command = new ToggleProductStatus.Command(id, true);
+                var result = await sender.Send(command);
+
+                return result.IsSuccess
+                    ? Results.Ok(new { message = "Product activated successfully" })
+                    : Results.BadRequest(result.Error);
+            })
+            .WithName("ActivateProduct")
+            .WithSummary("Activates a product (US-A12)");
+
+           
+            // 5. DEACTIVATE PRODUCT
+            group.MapPatch("/{id}/deactivate", async (int id, ISender sender) =>
+            {
+                var command = new ToggleProductStatus.Command(id, false);
+                var result = await sender.Send(command);
+
+                return result.IsSuccess
+                    ? Results.Ok(new { message = "Product deactivated successfully" })
+                    : Results.BadRequest(result.Error);
+            })
+            .WithName("DeactivateProduct")
+            .WithSummary("Deactivates a product (US-A12)");
+
+            
+            // 6. SEARCH PRODUCTS
+            group.MapGet("/search", async (
+                [FromQuery] string? searchTerm,
+                [FromQuery] decimal? minPrice,
+                [FromQuery] decimal? maxPrice,
+                [FromQuery] int? categoryId,
+                [FromQuery] int? occasionId,
+                [FromQuery] List<string>? tags,
+                [FromQuery] int pageNumber,
+                [FromQuery] int pageSize,
+                ISender sender) =>
+            {
+                var query = new SearchProducts.Query(
+                    searchTerm,
+                    minPrice,
+                    maxPrice,
+                    categoryId,
+                    occasionId,
+                    tags,
+                    pageNumber == 0 ? 1 : pageNumber,
+                    pageSize == 0 ? 20 : pageSize
+                );
+
+                var result = await sender.Send(query);
+
+                return result.IsSuccess
+                    ? Results.Ok(result.Value)
+                    : Results.BadRequest(result.Error);
+            })
+            .WithName("SearchProducts")
+            .WithSummary("Search products with filters (US-C04)");
+
+
+            // 9. GET PRODUCT DETAILS
+            group.MapGet("/{id}", async (int id, ISender sender) =>
+            {
+                var query = new GetProductDetails.Query(id);
+                var result = await sender.Send(query);
+
+                return result.IsSuccess
+                    ? Results.Ok(result.Value)
+                    : Results.NotFound(result.Error);
+            })
+            .WithName("GetProductDetails")
+            .WithSummary("Get detailed product information (US-C08)");
+
+
+
+
         }
     }
 }
