@@ -1,5 +1,4 @@
 ﻿using CategoryService.Contracts;
-using CategoryService.Contracts.Product;
 using CategoryService.Models;
 using CategoryService.Models.Enums;
 using CategoryService.shared.MarkerInterface;
@@ -12,9 +11,10 @@ using Shared.ApiResultResponse;
 
 namespace CategoryService.Features.Products
 {
-    public static class CreateProduct
+    public static class UpdateProduct
     {
         public sealed record Command(
+        int Id,
         string Name,
         string Description,
         decimal Price,
@@ -24,16 +24,18 @@ namespace CategoryService.Features.Products
         List<string>? Tags,
         string? ImageUrl,
         bool IsActive
-    ) : ICommand<Result<int>>;
-
+    ) : ICommand<Result<bool>>;
 
         public class Validator : AbstractValidator<Command>
         {
             public Validator()
             {
+                RuleFor(x => x.Id)
+                    .GreaterThan(0).WithMessage("Valid product ID is required");
+
                 RuleFor(x => x.Name)
                     .NotEmpty().WithMessage("Product name is required")
-                    .MaximumLength(200).WithMessage("Product name cannot exceed 200 characters");
+                    .MaximumLength(200);
 
                 RuleFor(x => x.Description)
                     .NotEmpty().WithMessage("Description is required")
@@ -41,10 +43,6 @@ namespace CategoryService.Features.Products
 
                 RuleFor(x => x.Price)
                     .GreaterThan(0).WithMessage("Price must be greater than 0");
-
-                RuleFor(x => x.Discount)
-                    .GreaterThanOrEqualTo(0).When(x => x.Discount.HasValue)
-                    .WithMessage("Discount cannot be negative");
 
                 RuleFor(x => x.CategoryId)
                     .GreaterThan(0).WithMessage("Valid category is required");
@@ -55,7 +53,7 @@ namespace CategoryService.Features.Products
         }
 
 
-        internal sealed class Handler : IRequestHandler<Command, Result<int>>
+        internal sealed class Handler : IRequestHandler<Command, Result<bool>>
         {
             private readonly IGenericRepository<Product, int> _productRepo;
             private readonly IValidator<Command> _validator;
@@ -71,29 +69,39 @@ namespace CategoryService.Features.Products
                 _publishEndpoint = publishEndpoint;
             }
 
-            public async Task<Result<int>> Handle(Command request, CancellationToken cancellationToken)
+            public async Task<Result<bool>> Handle(Command request, CancellationToken cancellationToken)
             {
                 // 1. Validation
-                var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+                var validationResult = await _validator.ValidateAsync(request);
                 if (!validationResult.IsValid)
-                    return Result.Failure<int>(
-                        new Error("CreateProduct.Validation", validationResult.ToString()));
+                    return Result.Failure<bool>(
+                        new Error("UpdateProduct.Validation", validationResult.ToString()));
 
-                // 2. Check if Category exists + Get Category Name
-                var category = await _productRepo.ExecuteRawSqlAsync<CategoryDto>(
-           "SELECT Id, Name FROM Categories WHERE Id = @p0",
-           cancellationToken,
-           request.CategoryId);
+                // 2. Single Query: Get Product with Occasions (with tracking)
+                var product = await _productRepo
+                    .GetAll(p => p.Id == request.Id, trackChanges: true)
+                    .Include(p => p.ProductOccasions)
+                    .FirstOrDefaultAsync(cancellationToken);
 
-                if (category == null)
-                    return Result.Failure<int>(
+                if (product == null)
+                    return Result.Failure<bool>(
+                        new Error("Product.NotFound", $"Product with ID {request.Id} not found"));
+
+                // 3. Single Query: Check Category exists
+                var categoryExists = await _productRepo.ExecuteRawSqlScalarAsync<int>(
+                    "SELECT COUNT(*) FROM Categories WHERE Id = @p0",
+                    cancellationToken,
+                    request.CategoryId);
+
+                if (categoryExists == 0)
+                    return Result.Failure<bool>(
                         new Error("Category.NotFound", $"Category with ID {request.CategoryId} not found"));
 
-                // 3. Check if all Occasions exist
+                // 4. Single Query: Check all Occasions exist
                 var occasionIds = request.OccasionIds.Distinct().ToList();
 
                 if (occasionIds.Count == 0)
-                    return Result.Failure<int>(
+                    return Result.Failure<bool>(
                         new Error("Occasion.Required", "At least one occasion is required"));
 
                 var occasionIdsParam = string.Join(",", occasionIds);
@@ -102,60 +110,57 @@ namespace CategoryService.Features.Products
                     cancellationToken);
 
                 if (existingOccasionCount != occasionIds.Count)
-                    return Result.Failure<int>(
+                    return Result.Failure<bool>(
                         new Error("Occasion.NotFound", "One or more occasions not found"));
 
-                // 4. Check for duplicate product name
+                // 5. Single Query: Check for duplicate name (excluding current product)
                 var nameExists = await _productRepo.AnyAsync(
-                    p => p.Name == request.Name,
+                    p => p.Name == request.Name && p.Id != request.Id,
                     cancellationToken);
 
                 if (nameExists)
-                    return Result.Failure<int>(
+                    return Result.Failure<bool>(
                         new Error("Product.NameNotUnique",
-                            $"Product with name '{request.Name}' already exists"));
+                            $"Another product with name '{request.Name}' already exists"));
 
-                // 5. Create Product
-                var product = new Product
-                {
-                    Name = request.Name,
-                    Description = request.Description,
-                    Price = request.Price,
-                    Discount = request.Discount,
-                    CategoryId = request.CategoryId,
-                    ImageUrl = request.ImageUrl,
-                    Status = request.IsActive ? ProductStatus.InStock : ProductStatus.Unstock,
-                    TagsList = request.Tags ?? new List<string>(),
-                    CreatedAtUtc = DateTime.UtcNow
-                };
+                // 6. Update Product Properties
+                product.Name = request.Name;
+                product.Description = request.Description;
+                product.Price = request.Price;
+                product.Discount = request.Discount;
+                product.CategoryId = request.CategoryId;
+                product.ImageUrl = request.ImageUrl;
+                product.Status = request.IsActive ? ProductStatus.InStock : ProductStatus.Unstock;
+                product.TagsList = request.Tags ?? new List<string>();
+                product.UpdatedAtUtc = DateTime.UtcNow;
 
-                // 6. Add Product-Occasion relationships
-                foreach (var occasionId in request.OccasionIds)
+                // 7. Update Occasions (Remove old, Add new)
+                product.ProductOccasions.Clear();
+                foreach (var occasionId in occasionIds)
                 {
                     product.ProductOccasions.Add(new ProductOccasion
                     {
+                        ProductId = product.Id,
                         OccasionId = occasionId
                     });
                 }
 
-                await _productRepo.AddAsync(product);
+                // 8. Save Changes
+                _productRepo.Update(product);
                 await _productRepo.SaveChangesAsync(cancellationToken);
 
-                // 7. 🐰 Publish Event to RabbitMQ
-                await _publishEndpoint.Publish(new ProductCreatedEvent
+                // 9. 🐰 Publish Event
+                await _publishEndpoint.Publish(new ProductUpdatedEvent
                 {
                     ProductId = product.Id,
                     Name = product.Name,
-                    CategoryId = product.CategoryId,
-                    CategoryName = category.Name,
                     Price = product.Price,
-                    CreatedAt = product.CreatedAtUtc
+                    IsActive = product.Status == ProductStatus.InStock,
+                    UpdatedAt = product.UpdatedAtUtc.Value
                 }, cancellationToken);
 
-                return Result.Success(product.Id);
+                return Result.Success(true);
             }
         }
     }
 }
-    
-
