@@ -114,7 +114,7 @@ namespace CategoryService.Features.Products.ProductEndpoints
                 [FromQuery] decimal? maxPrice,
                 [FromQuery] int? categoryId,
                 [FromQuery] int? occasionId,
-                [FromQuery] List<string>? tags,
+                [FromQuery] string[]? tags,
                 [FromQuery] int pageNumber,
                 [FromQuery] int pageSize,
                 ISender sender) =>
@@ -125,7 +125,7 @@ namespace CategoryService.Features.Products.ProductEndpoints
                     maxPrice,
                     categoryId,
                     occasionId,
-                    tags,
+                    tags.ToList(),
                     pageNumber == 0 ? 1 : pageNumber,
                     pageSize == 0 ? 20 : pageSize
                 );
