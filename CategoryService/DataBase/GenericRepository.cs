@@ -98,6 +98,38 @@ public class GenericRepository<TEntity, TKey> : IGenericRepository<TEntity , TKe
         }
     }
 
-  
+    public async Task<T?> ExecuteRawSqlAsync<T>(string sql, CancellationToken cancellationToken = default, params object[] parameters) where T : class
+    {
+        return await _context.Database
+            .SqlQueryRaw<T>(sql, parameters)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<T> ExecuteRawSqlScalarAsync<T>(string sql, CancellationToken cancellationToken = default, params object[] parameters)
+    {
+        using var command = _context.Database.GetDbConnection().CreateCommand();
+        command.CommandText = sql;
+
+        if (parameters != null && parameters.Length > 0)
+        {
+            foreach (var param in parameters)
+            {
+                var dbParam = command.CreateParameter();
+                dbParam.Value = param ?? DBNull.Value; // Handle null values
+                command.Parameters.Add(dbParam);
+            }
+        }
+
+        await _context.Database.OpenConnectionAsync(cancellationToken);
+
+        var result = await command.ExecuteScalarAsync(cancellationToken);
+
+        if (result == null || result == DBNull.Value)
+            return default(T);
+
+        return (T)Convert.ChangeType(result, typeof(T));
+    }
+
+
 }
 
