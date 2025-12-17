@@ -1,3 +1,11 @@
+﻿using Carter;
+using FluentValidation;
+using InventoryService.Contracts;
+using InventoryService.DataBase;
+using InventoryService.Extensions;
+using MediatR;
+using InventoryService.Behaviour;
+using Microsoft.EntityFrameworkCore;
 
 namespace InventoryService
 {
@@ -7,16 +15,55 @@ namespace InventoryService
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            // =========================================================
+            // 1. BASIC SERVICES
+            // =========================================================
             builder.Services.AddAuthorization();
-
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddHttpContextAccessor();
 
+            // =========================================================
+            // 2. DATABASE
+            // =========================================================
+            builder.Services.AddDbContext<InventoryDbContext>(options =>
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            // =========================================================
+            // 3. REPOSITORIES
+            // =========================================================
+            builder.Services.AddScoped(typeof(IGenericRepository<,>), typeof(GenericRepository<,>));
+            builder.Services.AddScoped<IDbInitializer, DbInitializer>();
+
+            // =========================================================
+            // 4. MASSTRANSIT + RABBITMQ 🐰
+            // =========================================================
+            builder.Services.AddMassTransitConfiguration(builder.Configuration);
+
+            // =========================================================
+            // 5. MEDIATR + VALIDATION + CARTER
+            // =========================================================
+            var assembly = typeof(Program).Assembly;
+
+            builder.Services.AddMediatR(cfg => {
+                cfg.RegisterServicesFromAssembly(assembly);
+                // Register Transactional Middleware
+                cfg.AddOpenBehavior(typeof(TransactionalMiddleware.TransactionPipelineBehavior<,>));
+            });
+
+            builder.Services.AddValidatorsFromAssembly(assembly);
+            builder.Services.AddCarter(configurator: config => config.WithValidatorLifetime(ServiceLifetime.Scoped));
+
+            // =========================================================
+            // BUILD APP
+            // =========================================================
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+
+            // =========================================================
+            // MIDDLEWARE
+            // =========================================================
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -24,13 +71,16 @@ namespace InventoryService
             }
 
             app.UseHttpsRedirection();
-
             app.UseAuthorization();
 
+            // =========================================================
+            // ENDPOINTS
+            // =========================================================
+
             var summaries = new[]
-            {
-                "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-            };
+       {
+            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+        };
 
             app.MapGet("/weatherforecast", (HttpContext httpContext) =>
             {
@@ -46,6 +96,17 @@ namespace InventoryService
             })
             .WithName("GetWeatherForecast")
             .WithOpenApi();
+
+            app.MapCarter();
+
+            app.MapGet("/health", () => Results.Ok(new
+            {
+                service = "InventoryService",
+                status = "Healthy",
+                timestamp = DateTime.UtcNow
+            }))
+            .WithName("HealthCheck")
+            .WithTags("Health");
 
             app.Run();
         }
