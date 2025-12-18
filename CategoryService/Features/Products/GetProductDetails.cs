@@ -15,19 +15,29 @@ namespace CategoryService.Features.Products
         {
             private readonly IGenericRepository<Product, int> _productRepo;
             private readonly IFileStorageService _fileService;
+            private readonly ISender _sender;
 
             public Handler(
                 IGenericRepository<Product, int> productRepo,
-                IFileStorageService fileService)
+                IFileStorageService fileService,
+                ISender sender)
             {
                 _productRepo = productRepo;
                 _fileService = fileService;
+                _sender = sender;
             }
 
             public async Task<Result<GetProductDetailsResponse>> Handle(
                 Query request,
                 CancellationToken cancellationToken)
             {
+                // Increment View Counts
+                _ = Task.Run(async () =>
+                {
+                    var incrementCommand = new IncrementProductViewCount.Command(request.Id);
+                    await _sender.Send(incrementCommand);
+                }, cancellationToken);
+
                 // Get product with all related data
                 var product = await _productRepo
                     .GetAll(p => p.Id == request.Id, trackChanges: false)
