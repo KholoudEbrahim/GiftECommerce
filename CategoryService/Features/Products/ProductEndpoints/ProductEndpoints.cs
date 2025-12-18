@@ -33,7 +33,7 @@ namespace CategoryService.Features.Products.ProductEndpoints
                     : Results.BadRequest(result.Error);
             })
             .WithName("CreateProduct")
-            .WithSummary("Creates a new product (US-A09)");
+            .WithSummary("Creates a new product");
 
 
             // 2. UPDATE PRODUCT
@@ -62,7 +62,7 @@ namespace CategoryService.Features.Products.ProductEndpoints
                     : Results.BadRequest(result.Error);
             })
             .WithName("UpdateProduct")
-            .WithSummary("Updates an existing product (US-A10)");
+            .WithSummary("Updates an existing product");
 
 
             // 3. DELETE PRODUCT
@@ -76,7 +76,7 @@ namespace CategoryService.Features.Products.ProductEndpoints
                     : Results.BadRequest(result.Error);
             })
             .WithName("DeleteProduct")
-            .WithSummary("Deletes a product (US-A11)");
+            .WithSummary("Deletes a product");
 
 
             // 4. ACTIVATE PRODUCT
@@ -90,7 +90,7 @@ namespace CategoryService.Features.Products.ProductEndpoints
                     : Results.BadRequest(result.Error);
             })
             .WithName("ActivateProduct")
-            .WithSummary("Activates a product (US-A12)");
+            .WithSummary("Activates a product");
 
            
             // 5. DEACTIVATE PRODUCT
@@ -104,7 +104,7 @@ namespace CategoryService.Features.Products.ProductEndpoints
                     : Results.BadRequest(result.Error);
             })
             .WithName("DeactivateProduct")
-            .WithSummary("Deactivates a product (US-A12)");
+            .WithSummary("Deactivates a product");
 
             
             // 6. SEARCH PRODUCTS
@@ -137,10 +137,10 @@ namespace CategoryService.Features.Products.ProductEndpoints
                     : Results.BadRequest(result.Error);
             })
             .WithName("SearchProducts")
-            .WithSummary("Search products with filters (US-C04)");
+            .WithSummary("Search products with filters");
 
 
-            // 9. GET PRODUCT DETAILS
+            // 7. GET PRODUCT DETAILS
             group.MapGet("/{id}", async (int id, ISender sender) =>
             {
                 var query = new GetProductDetails.Query(id);
@@ -151,9 +151,28 @@ namespace CategoryService.Features.Products.ProductEndpoints
                     : Results.NotFound(result.Error);
             })
             .WithName("GetProductDetails")
-            .WithSummary("Get detailed product information (US-C08)");
+            .WithSummary("Get detailed product information");
 
 
+            // 8. GET BEST SELLER PRODUCTS
+            group.MapGet("/best-sellers", async (
+            [FromQuery] int top,
+            [FromQuery] int? categoryId,
+            ISender sender) =>
+            {
+                var query = new GetBestSellerProducts.Query(
+                    top == 0 ? 10 : top,
+                    categoryId
+                );
+
+                var result = await sender.Send(query);
+
+                return result.IsSuccess
+                    ? Results.Ok(result.Value)
+                    : Results.BadRequest(result.Error);
+            })
+            .WithName("GetBestSellers")
+            .WithSummary("Get best-selling products");
 
 
         }
