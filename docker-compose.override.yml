@@ -48,23 +48,29 @@ services:
     depends_on:
       sqlserver:
         condition: service_healthy
-
+  
+  inventoryservice:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=InventoryDb;User Id=sa;Password=Strong!Passw0rd123;TrustServerCertificate=True
+    command: ["dotnet", "InventoryService.dll", "--urls", "http://0.0.0.0:8080"]
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+  
   categoryservice:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=CatalogDb;User Id=sa;Password=Strong!Passw0rd123;TrustServerCertificate=True
+    command: ["dotnet", "CategoryService.dll", "--urls", "http://0.0.0.0:8080"]
     depends_on:
       - sqlserver
       - redis
-
-  productservice:
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_HTTP_PORTS=8080
-      - ASPNETCORE_HTTPS_PORTS=8081
-    depends_on:
-      - sqlserver
 
   cartservice:
     environment:
@@ -99,19 +105,7 @@ services:
       - ASPNETCORE_HTTPS_PORTS=8081
     depends_on:
       - rabbit
-  
-  occasionservice:
-    environment:
-     - ASPNETCORE_ENVIRONMENT=Development
-     - ASPNETCORE_URLS=http://+:8080
-     - DOTNET_RUNNING_IN_CONTAINER=true
-     - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=OccasionDb;User Id=sa;Password=Strong!Passw0rd123;TrustServerCertificate=True
-    command: ["dotnet", "OccasionService.dll", "--urls", "http://0.0.0.0:8080"] 
-    depends_on:
-      sqlserver:
-        condition: service_healthy
        
-  
   gateway:
     depends_on:
       - identityservice

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CategoryService.Migrations
 {
     [DbContext(typeof(CatalogDbContext))]
-    [Migration("20251216180947_AddTagsToProduct")]
-    partial class AddTagsToProduct
+    [Migration("20251218140100_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
