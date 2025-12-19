@@ -1,13 +1,16 @@
 using Carter;
 using CategoryService.Behaviour;
 using CategoryService.Contracts;
+using CategoryService.Contracts.ExternalServices;
 using CategoryService.DataBase;
 using CategoryService.Extensions;
 using CategoryService.shared.Services;
 using FluentValidation;
-using MediatR;
 using MassTransit;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Polly;
+using Polly.Extensions.Http;
 using System.Reflection;
 
 namespace CategoryService;
@@ -55,7 +58,7 @@ public class Program
 
 
         // =================================================================
-        // 4. LIBRARIES (MediatR, Carter, Validation)
+        // 4. LIBRARIES (MediatR, Carter, Validation, Polly)
         // =================================================================
         var assembly = typeof(Program).Assembly;
 
@@ -67,6 +70,39 @@ public class Program
 
         builder.Services.AddValidatorsFromAssembly(assembly);
         builder.Services.AddCarter(configurator: config => config.WithValidatorLifetime(ServiceLifetime.Scoped));
+
+        // Cart Service Client
+        builder.Services.AddHttpClient<ICartServiceClient, CartServiceClient>(client =>
+        {
+            var baseUrl = builder.Configuration["ExternalServices:CartService:BaseUrl"]
+                ?? "http://localhost:5004";
+            client.BaseAddress = new Uri(baseUrl);
+            client.Timeout = TimeSpan.FromSeconds(30);
+        })
+        .AddPolicyHandler(GetRetryPolicy())
+        .AddPolicyHandler(GetCircuitBreakerPolicy());
+
+        // Order Service Client
+        builder.Services.AddHttpClient<IOrderServiceClient, OrderServiceClient>(client =>
+        {
+            var baseUrl = builder.Configuration["ExternalServices:OrderService:BaseUrl"]
+                ?? "http://localhost:5005";
+            client.BaseAddress = new Uri(baseUrl);
+            client.Timeout = TimeSpan.FromSeconds(30);
+        })
+        .AddPolicyHandler(GetRetryPolicy())
+        .AddPolicyHandler(GetCircuitBreakerPolicy());
+
+        // Inventory Service Client
+        builder.Services.AddHttpClient<IInventoryServiceClient, InventoryServiceClient>(client =>
+        {
+            var baseUrl = builder.Configuration["ExternalServices:InventoryService:BaseUrl"]
+                ?? "http://localhost:5003";
+            client.BaseAddress = new Uri(baseUrl);
+            client.Timeout = TimeSpan.FromSeconds(30);
+        })
+        .AddPolicyHandler(GetRetryPolicy())
+        .AddPolicyHandler(GetCircuitBreakerPolicy());
 
 
 
@@ -108,5 +144,36 @@ public class Program
 
         app.MapCarter();
         app.Run();
+    }
+
+    static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+    {
+        return HttpPolicyExtensions
+            .HandleTransientHttpError()
+            .WaitAndRetryAsync(
+                retryCount: 3,
+                sleepDurationProvider: retryAttempt =>
+                    TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                onRetry: (outcome, timespan, retryCount, context) =>
+                {
+                    Console.WriteLine($"Retry {retryCount} after {timespan.TotalSeconds}s");
+                });
+    }
+
+    static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy()
+    {
+        return HttpPolicyExtensions
+            .HandleTransientHttpError()
+            .CircuitBreakerAsync(
+                handledEventsAllowedBeforeBreaking: 5,
+                durationOfBreak: TimeSpan.FromSeconds(30),
+                onBreak: (outcome, timespan) =>
+                {
+                    Console.WriteLine($"Circuit breaker opened for {timespan.TotalSeconds}s");
+                },
+                onReset: () =>
+                {
+                    Console.WriteLine("Circuit breaker reset");
+                });
     }
 }

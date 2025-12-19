@@ -1,4 +1,5 @@
 ﻿using CategoryService.Contracts;
+using CategoryService.Contracts.ExternalServices;
 using CategoryService.Contracts.Product;
 using CategoryService.Models;
 using MediatR;
@@ -15,19 +16,32 @@ namespace CategoryService.Features.Products
         {
             private readonly IGenericRepository<Product, int> _productRepo;
             private readonly IFileStorageService _fileService;
+            private readonly ISender _sender;
+            private readonly IInventoryServiceClient _inventoryServiceClient;
 
             public Handler(
                 IGenericRepository<Product, int> productRepo,
-                IFileStorageService fileService)
+                IFileStorageService fileService,
+                ISender sender,
+                IInventoryServiceClient inventoryServiceClient)
             {
                 _productRepo = productRepo;
                 _fileService = fileService;
+                _sender = sender;
+                _inventoryServiceClient = inventoryServiceClient;
             }
 
             public async Task<Result<GetProductDetailsResponse>> Handle(
                 Query request,
                 CancellationToken cancellationToken)
             {
+                // Increment View Counts
+                _ = Task.Run(async () =>
+                {
+                    var incrementCommand = new IncrementProductViewCount.Command(request.Id);
+                    await _sender.Send(incrementCommand);
+                }, cancellationToken);
+
                 // Get product with all related data
                 var product = await _productRepo
                     .GetAll(p => p.Id == request.Id, trackChanges: false)
@@ -64,6 +78,11 @@ namespace CategoryService.Features.Products
                     return Result.Failure<GetProductDetailsResponse>(
                         new Error("Product.NotFound", $"Product with ID {request.Id} not found"));
 
+                // Get stock info from InventoryService
+                var stockInfo = await _inventoryServiceClient.GetStockInfoAsync(
+                    request.Id,
+                    cancellationToken);
+
                 // Map to response
                 var response = new GetProductDetailsResponse(
                     Id: product.Id,
@@ -88,7 +107,7 @@ namespace CategoryService.Features.Products
                         : product.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries)
                             .Select(t => t.Trim())
                             .ToList(),
-                    StockInfo: null, // Will be fetched from InventoryService later
+                    StockInfo: null,
                     CreatedAt: product.CreatedAtUtc
                 );
 
