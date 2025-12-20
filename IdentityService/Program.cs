@@ -1,10 +1,13 @@
 using FluentValidation;
 using IdentityService.Data;
+using IdentityService.Events;
 using IdentityService.Features.Commands.Login;
 using IdentityService.Features.Commands.PasswordReset;
 using IdentityService.Features.Commands.SignUp;
 using IdentityService.Features.Shared;
 using IdentityService.Services;
+using MassTransit;
+using MassTransit.RabbitMqTransport;
 using MediatR;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.Mvc;
@@ -57,6 +60,23 @@ namespace IdentityService
             builder.Services.AddScoped<IRequestHandler<ResetPasswordCommand, RequestResponse<ResetPasswordResponseDto>>, ResetPasswordCommandHandler>();
             builder.Services.AddScoped<IRequestHandler<SignUpCommand, RequestResponse<SignUpResponseDto>>, SignUpCommandHandler>();
             builder.Services.AddScoped<IRequestHandler<LoginCommand, RequestResponse<LoginResponseDto>>, LoginCommandHandler>();
+
+
+            builder.Services.AddMassTransit(x =>
+            {
+                x.SetKebabCaseEndpointNameFormatter();
+
+                x.UsingRabbitMq((context, cfg) =>
+                {
+                    cfg.Host(builder.Configuration["RabbitMQ:Host"], "/", h =>
+                    {
+                        h.Username(builder.Configuration["RabbitMQ:Username"]);
+                        h.Password(builder.Configuration["RabbitMQ:Password"]);
+                    });
+                });
+            });
+
+            builder.Services.AddScoped<IUserEventPublisher, UserEventPublisher>();
 
 
             builder.Services.ConfigureHttpJsonOptions(options =>

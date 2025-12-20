@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InventoryService", "Invento
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Events", "Events\Events.csproj", "{C82BFA8E-18C6-447A-AFEC-72FDB4652A08}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserProfileService", "UserProfileService\UserProfileService.csproj", "{AD419CA3-BF5B-4D10-B8A2-6F5A5D7DB7FD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +77,10 @@ Global
 		{C82BFA8E-18C6-447A-AFEC-72FDB4652A08}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C82BFA8E-18C6-447A-AFEC-72FDB4652A08}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C82BFA8E-18C6-447A-AFEC-72FDB4652A08}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD419CA3-BF5B-4D10-B8A2-6F5A5D7DB7FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD419CA3-BF5B-4D10-B8A2-6F5A5D7DB7FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD419CA3-BF5B-4D10-B8A2-6F5A5D7DB7FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD419CA3-BF5B-4D10-B8A2-6F5A5D7DB7FD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

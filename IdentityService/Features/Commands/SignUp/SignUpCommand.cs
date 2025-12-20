@@ -3,6 +3,7 @@ using IdentityService.Data;
 using IdentityService.Features.Shared;
 using IdentityService.Models;
 using IdentityService.Services;
+using MassTransit;
 using MediatR;
 
 namespace IdentityService.Features.Commands.SignUp;
@@ -24,16 +25,19 @@ public record SignUpCommand(
         private readonly IPasswordService _passwordService;
         private readonly IValidator<SignUpCommand> _validator;
         private readonly ILogger<SignUpCommandHandler> _logger;
+        private readonly IPublishEndpoint _publishEndpoint;
 
         public SignUpCommandHandler(
             IRepository Repository,
             IPasswordService passwordService,
             IValidator<SignUpCommand> validator,
+              IPublishEndpoint publishEndpoint,
             ILogger<SignUpCommandHandler> logger)
         {
             _Repository = Repository;
             _passwordService = passwordService;
             _validator = validator;
+            _publishEndpoint = publishEndpoint;
             _logger = logger;
         }
 

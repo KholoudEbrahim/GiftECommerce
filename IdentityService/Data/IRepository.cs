@@ -11,5 +11,6 @@ namespace IdentityService.Data
         Task<User> UpdateAsync(User user);
         Task<bool> EmailExistsAsync(string email);
         Task<bool> PhoneExistsAsync(string phone);
+
     }
 }
