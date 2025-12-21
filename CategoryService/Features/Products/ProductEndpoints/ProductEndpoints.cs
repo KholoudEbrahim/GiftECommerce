@@ -175,6 +175,35 @@ namespace CategoryService.Features.Products.ProductEndpoints
             .WithSummary("Get best-selling products");
 
 
+            // 9. SYNC PRODUCT SALES COUNT
+            group.MapPost("/{id}/sync-sales", async (int id, ISender sender) =>
+            {
+                var command = new SyncProductSalesCount.Command(id);
+                var result = await sender.Send(command);
+
+                return result.IsSuccess
+                    ? Results.Ok(result.Value)
+                    : Results.BadRequest(result.Error);
+            })
+           .WithName("SyncProductSales")
+           .WithSummary("Sync product sales count with OrderService");
+
+
+            // 10. SYNC ALL PRODUCTS SALES COUNT
+            group.MapPost("/sync-all-sales", async (ISender sender) =>
+            {
+                var command = new SyncAllProductsSales.Command();
+                var result = await sender.Send(command);
+
+                return result.IsSuccess
+                    ? Results.Ok(result.Value)
+                    : Results.BadRequest(result.Error);
+            })
+            .WithName("SyncAllProductsSales")
+            .WithSummary("Sync all products sales counts with OrderService");
+
+
+
         }
     }
 }

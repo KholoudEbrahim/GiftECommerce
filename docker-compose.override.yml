@@ -101,7 +101,6 @@ services:
       - sqlserver
       - redis
       - identityservice
-      - productservice
 
 
   orderservice:
