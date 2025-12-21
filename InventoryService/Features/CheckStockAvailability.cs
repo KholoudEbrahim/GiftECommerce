@@ -21,14 +21,12 @@ namespace InventoryService.Features
         internal sealed class Handler : IRequestHandler<Query, Result<CheckStockAvailabilityResponse>>
         {
             private readonly IGenericRepository<Stock, int> _stockRepo;
-            private readonly IValidator<Query> _validator;
             private readonly ILogger<Handler> _logger;
 
-            public Handler(IGenericRepository<Stock, int> stockRepo , IValidator<Query> validator,
+            public Handler(IGenericRepository<Stock, int> stockRepo,
             ILogger<Handler> logger)
             {
                 _stockRepo = stockRepo;
-                _validator = validator;
                 _logger = logger;
             }
 
@@ -37,10 +35,13 @@ namespace InventoryService.Features
                 CancellationToken cancellationToken)
             {
                 // 1. Validation
-                var validationResult = await _validator.ValidateAsync(request, cancellationToken);
-                if (!validationResult.IsValid)
+                if (request.ProductId <= 0)
                     return Result.Failure<CheckStockAvailabilityResponse>(
-                        new Error("CheckStock.Validation", validationResult.ToString()));
+                        new Error("CheckStock.Validation", "Valid product ID is required"));
+
+                if (request.RequestedQuantity <= 0)
+                    return Result.Failure<CheckStockAvailabilityResponse>(
+                        new Error("CheckStock.Validation", "Requested quantity must be greater than 0"));
 
                 _logger.LogInformation(
                     "Checking stock availability for Product {ProductId}, Quantity {Quantity}",
