@@ -28,7 +28,7 @@ namespace InventoryService.Consumers
             var message = context.Message;
 
             _logger.LogInformation(
-                "📦 Received ProductCreatedEvent for ProductId: {ProductId}, Name: {Name}",
+                "Received ProductCreatedEvent for ProductId: {ProductId}, Name: {Name}",
                 message.ProductId,
                 message.Name);
 
@@ -42,7 +42,7 @@ namespace InventoryService.Consumers
                 if (existingStock != null)
                 {
                     _logger.LogWarning(
-                        "⚠️ Stock record already exists for ProductId: {ProductId}",
+                        "Stock record already exists for ProductId: {ProductId}",
                         message.ProductId);
                     return;
                 }
@@ -78,13 +78,13 @@ namespace InventoryService.Consumers
                 await _transactionRepo.SaveChangesAsync();
 
                 _logger.LogInformation(
-                    "✅ Stock record created successfully for ProductId: {ProductId}",
+                    "Stock record created successfully for ProductId: {ProductId}",
                     message.ProductId);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex,
-                    "❌ Error creating stock record for ProductId: {ProductId}",
+                    "Error creating stock record for ProductId: {ProductId}",
                     message.ProductId);
                 throw;
             }

@@ -1,4 +1,5 @@
-﻿using InventoryService.Contracts;
+﻿using FluentValidation;
+using InventoryService.Contracts;
 using InventoryService.Contracts.Stock;
 using InventoryService.Models;
 using InventoryService.shared.MarkerInterface;
@@ -20,34 +21,82 @@ namespace InventoryService.Features
         internal sealed class Handler : IRequestHandler<Query, Result<CheckStockAvailabilityResponse>>
         {
             private readonly IGenericRepository<Stock, int> _stockRepo;
+            private readonly IValidator<Query> _validator;
+            private readonly ILogger<Handler> _logger;
 
-            public Handler(IGenericRepository<Stock, int> stockRepo)
+            public Handler(IGenericRepository<Stock, int> stockRepo , IValidator<Query> validator,
+            ILogger<Handler> logger)
             {
                 _stockRepo = stockRepo;
+                _validator = validator;
+                _logger = logger;
             }
 
             public async Task<Result<CheckStockAvailabilityResponse>> Handle(
                 Query request,
                 CancellationToken cancellationToken)
             {
+                // 1. Validation
+                var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+                if (!validationResult.IsValid)
+                    return Result.Failure<CheckStockAvailabilityResponse>(
+                        new Error("CheckStock.Validation", validationResult.ToString()));
+
+                _logger.LogInformation(
+                    "Checking stock availability for Product {ProductId}, Quantity {Quantity}",
+                    request.ProductId,
+                    request.RequestedQuantity);
+
+                // 2. Check stock
                 var stock = await _stockRepo
                     .GetAll(s => s.ProductId == request.ProductId)
                     .FirstOrDefaultAsync(cancellationToken);
 
+                // 3. Handle stock not found
                 if (stock == null)
                 {
+                    _logger.LogWarning(
+                        "Stock record not found for Product {ProductId}",
+                        request.ProductId);
+
                     return Result.Success(new CheckStockAvailabilityResponse(
-                        false,
-                        0,
-                        request.RequestedQuantity,
-                        "Product stock information not found"
+                        IsAvailable: false,
+                        CurrentStock: 0,
+                        RequestedQuantity: request.RequestedQuantity,
+                        Message: "Product stock information not found"
                     ));
                 }
 
+                // 4. Determine availability
                 var isAvailable = stock.CurrentStock >= request.RequestedQuantity;
-                var message = isAvailable
-                    ? "Stock available"
-                    : $"Insufficient stock. Available: {stock.CurrentStock}, Requested: {request.RequestedQuantity}";
+
+                string message;
+                if (isAvailable)
+                {
+                    message = "Stock available";
+                    _logger.LogInformation(
+                        "Stock available for Product {ProductId}: {Current}/{Requested}",
+                        request.ProductId,
+                        stock.CurrentStock,
+                        request.RequestedQuantity);
+                }
+                else if (stock.CurrentStock == 0)
+                {
+                    message = "Product is out of stock";
+                    _logger.LogWarning(
+                        "Product {ProductId} is out of stock",
+                        request.ProductId);
+                }
+                else
+                {
+                    message = $"Insufficient stock. Available: {stock.CurrentStock}, Requested: {request.RequestedQuantity}";
+                    _logger.LogWarning(
+                        "Insufficient stock for Product {ProductId}: Available={Available}, Requested={Requested}",
+                        request.ProductId,
+                        stock.CurrentStock,
+                        request.RequestedQuantity);
+                }
+
 
                 return Result.Success(new CheckStockAvailabilityResponse(
                     isAvailable,

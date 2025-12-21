@@ -116,6 +116,9 @@ namespace InventoryService.Features.InventoryEndpoints
             [FromQuery] int quantity,
             ISender sender) =>
             {
+                if (quantity <= 0)
+                    return Results.BadRequest(new { error = "Quantity must be greater than 0" });
+
                 var query = new CheckStockAvailability.Query(productId, quantity);
                 var result = await sender.Send(query);
 
@@ -124,10 +127,45 @@ namespace InventoryService.Features.InventoryEndpoints
                     : Results.BadRequest(result.Error);
             })
             .WithName("CheckStockAvailability")
-            .WithSummary("Check if requested quantity is available in stock");
+            .WithSummary("Check if requested quantity is available (used by CartService/CategoryService)")
+            .WithDescription("Returns availability status and current stock level");
+
+
+            
+            // 7. BULK CHECK STOCK AVAILABILITY
+            group.MapPost("/check-bulk", async (
+                [FromBody] BulkCheckStockRequest request,
+                ISender sender) =>
+            {
+                var products = request.Products
+                    .Select(p => new BulkCheckStockAvailability.ProductQuantityRequest(p.ProductId, p.Quantity))
+                    .ToList();
+
+                var query = new BulkCheckStockAvailability.Query(products);
+                var result = await sender.Send(query);
+
+                return result.IsSuccess
+                    ? Results.Ok(result.Value)
+                    : Results.BadRequest(result.Error);
+            })
+            .WithName("BulkCheckStockAvailability")
+            .WithSummary("Check stock availability for multiple products at once")
+            .WithDescription("Used by CartService when checking entire cart");
+
+
+
+
+
         }
 
 
     }
-    
+
+    // Request DTO for bulk check
+    public record BulkCheckStockRequest(
+        List<ProductQuantityDto> Products
+    );
+
+    public record ProductQuantityDto(int ProductId, int Quantity);
+
 }

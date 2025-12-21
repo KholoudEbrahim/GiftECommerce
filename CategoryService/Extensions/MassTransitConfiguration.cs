@@ -1,4 +1,5 @@
-﻿using MassTransit;
+﻿using CategoryService.Consumers;
+using MassTransit;
 
 namespace CategoryService.Extensions
 {
@@ -10,6 +11,8 @@ namespace CategoryService.Extensions
         {
             services.AddMassTransit(x =>
             {
+                x.AddConsumer<OrderCompletedConsumer>();
+
                 x.UsingRabbitMq((context, cfg) =>
                 {
                     var host = configuration["RabbitMQ:Host"] ?? "localhost";

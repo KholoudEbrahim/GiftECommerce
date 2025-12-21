@@ -31,10 +31,18 @@ namespace InventoryService
                     builder.Configuration.GetConnectionString("DefaultConnection")));
 
             // =========================================================
-            // 3. REPOSITORIES
+            // 3. REPOSITORIES & HTTP CLIENTS
             // =========================================================
             builder.Services.AddScoped(typeof(IGenericRepository<,>), typeof(GenericRepository<,>));
             builder.Services.AddScoped<IDbInitializer, DbInitializer>();
+
+            builder.Services.AddHttpClient("CartService", client =>
+            {
+                var baseUrl = builder.Configuration["ExternalServices:CartService:BaseUrl"]
+                    ?? "http://localhost:5341";
+                client.BaseAddress = new Uri(baseUrl);
+                client.Timeout = TimeSpan.FromSeconds(10);
+            });
 
             // =========================================================
             // 4. MASSTRANSIT + RABBITMQ 🐰
