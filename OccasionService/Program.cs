@@ -133,6 +133,7 @@ try
         var dbContext = scope.ServiceProvider.GetRequiredService<OccasionDbContext>();
 
         Console.WriteLine("⏳ Applying database migrations...");
+        await dbContext.Database.EnsureCreatedAsync();
         dbContext.Database.Migrate();
         Console.WriteLine("✅ Database migrations applied successfully!");
     }

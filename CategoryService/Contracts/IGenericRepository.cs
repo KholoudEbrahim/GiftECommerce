@@ -28,4 +28,7 @@ public interface IGenericRepository<TEntity, TKey> where TEntity : BaseEntity<TK
     Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken cancellationToken = default);
 
     public void SaveInclude(TEntity entity, params string[] includedProperties);
+
+    Task<T?> ExecuteRawSqlAsync<T>(string sql, CancellationToken cancellationToken = default, params object[] parameters) where T : class;
+    Task<T> ExecuteRawSqlScalarAsync<T>(string sql, CancellationToken cancellationToken = default, params object[] parameters);
 }

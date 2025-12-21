@@ -1,18 +1,34 @@
 [
-    {
-        "Name": "Red Rose Bouquet",
-        "Description": "15 Red Roses",
-        "Price": 1500.00,
-        "Status": 1,
-        "CategoryId": 1,
-        "IsDeleted": false
-    },
-    {
-        "Name": "Crystal Vase",
-        "Description": "Elegant glass vase",
-        "Price": 500.00,
-        "Status": 1,
-        "CategoryId": 2,
-        "IsDeleted": false
-    }
+  {
+    "Name": "Red Rose Bouquet",
+    "Description": "Beautiful arrangement of 12 red roses",
+    "Price": 299.99,
+    "Discount": 249.99,
+    "Status": "InStock",
+    "ImageUrl": "images/products/red-roses.jpg",
+    "CategoryId": 1,
+    "Tags": "roses,red,romantic,anniversary",
+    "TotalSales": 156,
+    "ViewCount": 1234,
+    "Rating": 4.8,
+    "RatingCount": 89,
+    "CreatedAtUtc": "2024-01-15T10:00:00Z",
+    "IsDeleted": false
+  },
+  {
+    "Name": "White Lily Arrangement",
+    "Description": "Elegant white lilies in a crystal vase",
+    "Price": 399.99,
+    "Discount": null,
+    "Status": "InStock",
+    "ImageUrl": "images/products/white-lilies.jpg",
+    "CategoryId": 1,
+    "Tags": "lilies,white,elegant,wedding",
+    "TotalSales": 98,
+    "ViewCount": 876,
+    "Rating": 4.9,
+    "RatingCount": 67,
+    "CreatedAtUtc": "2024-02-01T10:00:00Z",
+    "IsDeleted": false
+  }
 ]
