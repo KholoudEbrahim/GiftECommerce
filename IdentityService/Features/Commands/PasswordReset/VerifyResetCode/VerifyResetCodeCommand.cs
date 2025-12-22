@@ -4,25 +4,25 @@ using IdentityService.Features.Shared;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace IdentityService.Features.Commands.PasswordReset
+namespace IdentityService.Features.Commands.PasswordReset.VerifyResetCode
 {
     public record VerifyResetCodeCommand(string Email, string Code)
       : IRequest<RequestResponse<VerifyResetCodeResponseDto>>
 
     {
         public class VerifyResetCodeCommandHandler
-    : IRequestHandler<VerifyResetCodeCommand, RequestResponse<VerifyResetCodeResponseDto>>
+           : IRequestHandler<VerifyResetCodeCommand, RequestResponse<VerifyResetCodeResponseDto>>
         {
-            private readonly IdentityDbContext _context;
+            private readonly IRepository _repository;
             private readonly IValidator<VerifyResetCodeCommand> _validator;
             private readonly ILogger<VerifyResetCodeCommandHandler> _logger;
 
             public VerifyResetCodeCommandHandler(
-                IdentityDbContext context,
+                IRepository repository,
                 IValidator<VerifyResetCodeCommand> validator,
                 ILogger<VerifyResetCodeCommandHandler> logger)
             {
-                _context = context;
+                _repository = repository;
                 _validator = validator;
                 _logger = logger;
             }
@@ -41,14 +41,7 @@ namespace IdentityService.Features.Commands.PasswordReset
                             400);
                     }
 
-         
-                    var resetRequest = await _context.PasswordResetRequests
-                        .Where(r => r.Email.ToLower() == request.Email.ToLower()
-                                 && r.ResetCode == request.Code
-                                 && !r.IsUsed
-                                 && r.IsActive)
-                        .OrderByDescending(r => r.CreatedAt)
-                        .FirstOrDefaultAsync(cancellationToken);
+                    var resetRequest = await _repository.GetPasswordResetRequestByEmailAndCodeAsync(request.Email, request.Code);
 
                     if (resetRequest == null)
                     {
@@ -62,7 +55,6 @@ namespace IdentityService.Features.Commands.PasswordReset
                             200);
                     }
 
-      
                     if (resetRequest.ExpiresAt < DateTime.UtcNow)
                     {
                         return RequestResponse<VerifyResetCodeResponseDto>.Success(
@@ -95,9 +87,9 @@ namespace IdentityService.Features.Commands.PasswordReset
                         500);
                 }
             }
+
+
+
         }
-
-
-
     }
 }

@@ -5,7 +5,7 @@ using IdentityService.Services;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace IdentityService.Features.Commands.PasswordReset
+namespace IdentityService.Features.Commands.PasswordReset.ResendResetCode
 {
     public record ResetPasswordCommand(
          Guid ResetRequestId,
@@ -13,24 +13,21 @@ namespace IdentityService.Features.Commands.PasswordReset
          string ConfirmPassword) : IRequest<RequestResponse<ResetPasswordResponseDto>>
     {
         public class ResetPasswordCommandHandler
-    : IRequestHandler<ResetPasswordCommand, RequestResponse<ResetPasswordResponseDto>>
+         : IRequestHandler<ResetPasswordCommand, RequestResponse<ResetPasswordResponseDto>>
         {
-            private readonly IRepository _userRepository;
+            private readonly IRepository _repository;
             private readonly IPasswordService _passwordService;
-            private readonly IdentityDbContext _context;
             private readonly IValidator<ResetPasswordCommand> _validator;
             private readonly ILogger<ResetPasswordCommandHandler> _logger;
 
             public ResetPasswordCommandHandler(
-                IRepository userRepository,
+                IRepository repository,
                 IPasswordService passwordService,
-                IdentityDbContext context,
                 IValidator<ResetPasswordCommand> validator,
                 ILogger<ResetPasswordCommandHandler> logger)
             {
-                _userRepository = userRepository;
+                _repository = repository;
                 _passwordService = passwordService;
-                _context = context;
                 _validator = validator;
                 _logger = logger;
             }
@@ -41,7 +38,6 @@ namespace IdentityService.Features.Commands.PasswordReset
             {
                 try
                 {
-
                     var validationResult = await _validator.ValidateAsync(request, cancellationToken);
                     if (!validationResult.IsValid)
                     {
@@ -50,32 +46,27 @@ namespace IdentityService.Features.Commands.PasswordReset
                             400);
                     }
 
-                    var resetRequest = await _context.PasswordResetRequests
-    .FirstOrDefaultAsync(r => r.Id == request.ResetRequestId
-                           && !r.IsUsed
-                           && r.IsActive, cancellationToken);
+                    var resetRequest = await _repository.GetPasswordResetRequestByIdAsync(request.ResetRequestId);
 
-                    if (resetRequest == null)
+                    if (resetRequest == null || resetRequest.IsUsed || !resetRequest.IsActive)
                     {
                         return RequestResponse<ResetPasswordResponseDto>.Fail(
                             "Invalid or expired reset request",
                             400);
                     }
 
-   
                     if (resetRequest.ExpiresAt < DateTime.UtcNow)
                     {
                         resetRequest.IsUsed = true;
                         resetRequest.UsedAt = DateTime.UtcNow;
-                        await _context.SaveChangesAsync(cancellationToken);
+                        await _repository.UpdatePasswordResetRequestAsync(resetRequest);
 
                         return RequestResponse<ResetPasswordResponseDto>.Fail(
                             "Reset request has expired",
                             400);
                     }
 
-             
-                    var user = await _userRepository.GetByEmailAsync(resetRequest.Email);
+                    var user = await _repository.GetByEmailAsync(resetRequest.Email);
                     if (user == null)
                     {
                         return RequestResponse<ResetPasswordResponseDto>.Fail(
@@ -83,15 +74,14 @@ namespace IdentityService.Features.Commands.PasswordReset
                             404);
                     }
 
-      
                     user.PasswordHash = _passwordService.HashPassword(request.NewPassword);
                     user.UpdatedAt = DateTime.UtcNow;
 
-   
                     resetRequest.IsUsed = true;
                     resetRequest.UsedAt = DateTime.UtcNow;
 
-                    await _context.SaveChangesAsync(cancellationToken);
+                    await _repository.UpdateAsync(user);
+                    await _repository.UpdatePasswordResetRequestAsync(resetRequest);
 
                     _logger.LogInformation("Password reset successful for {Email}", user.Email);
 
