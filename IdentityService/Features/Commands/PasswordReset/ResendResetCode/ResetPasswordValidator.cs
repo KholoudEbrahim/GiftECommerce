@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace IdentityService.Features.Commands.PasswordReset
+namespace IdentityService.Features.Commands.PasswordReset.ResendResetCode
 {
     public class ResetPasswordValidator : AbstractValidator<ResetPasswordCommand>
     {

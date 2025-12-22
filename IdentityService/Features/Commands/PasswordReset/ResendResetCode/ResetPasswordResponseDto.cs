@@ -1,4 +1,4 @@
-﻿namespace IdentityService.Features.Commands.PasswordReset
+﻿namespace IdentityService.Features.Commands.PasswordReset.ResendResetCode
 {
     public class ResetPasswordResponseDto
     {

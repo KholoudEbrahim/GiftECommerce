@@ -1,7 +1,7 @@
 ﻿using IdentityService.Features.Shared;
 using MediatR;
 
-namespace IdentityService.Features.Commands.PasswordReset
+namespace IdentityService.Features.Commands.PasswordReset.ResendResetCode
 {
     public static class ResetPasswordEndpoint
     {

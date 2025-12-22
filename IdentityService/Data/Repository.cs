@@ -100,5 +100,66 @@ namespace IdentityService.Data
             return await _context.Users
                 .AnyAsync(u => u.Phone == phone);
         }
+        public async Task<PasswordResetRequest> CreatePasswordResetRequestAsync(PasswordResetRequest request)
+        {
+            try
+            {
+                await _context.PasswordResetRequests.AddAsync(request);
+                await _context.SaveChangesAsync();
+                return request;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating password reset request for {Email}", request.Email);
+                throw;
+            }
+        }
+
+        public async Task<PasswordResetRequest?> GetPasswordResetRequestByIdAsync(Guid id)
+        {
+            return await _context.PasswordResetRequests
+                .FirstOrDefaultAsync(r => r.Id == id && r.IsActive);
+        }
+
+        public async Task<PasswordResetRequest?> GetPasswordResetRequestByEmailAndCodeAsync(string email, string code)
+        {
+            return await _context.PasswordResetRequests
+                .Where(r => r.Email.ToLower() == email.ToLower()
+                         && r.ResetCode == code
+                         && !r.IsUsed
+                         && r.IsActive)
+                .OrderByDescending(r => r.CreatedAt)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<List<PasswordResetRequest>> GetActivePasswordResetRequestsByEmailAsync(string email)
+        {
+            return await _context.PasswordResetRequests
+                .Where(r => r.Email.ToLower() == email.ToLower()
+                         && !r.IsUsed
+                         && r.IsActive)
+                .ToListAsync();
+        }
+
+        public async Task<PasswordResetRequest> UpdatePasswordResetRequestAsync(PasswordResetRequest request)
+        {
+            _context.PasswordResetRequests.Update(request);
+            await _context.SaveChangesAsync();
+            return request;
+        }
+
+        public async Task<int> InvalidatePasswordResetRequestsAsync(string email)
+        {
+            var requests = await GetActivePasswordResetRequestsByEmailAsync(email);
+
+            foreach (var request in requests)
+            {
+                request.IsUsed = true;
+                request.UsedAt = DateTime.UtcNow;
+                request.UpdatedAt = DateTime.UtcNow;
+            }
+
+            return await _context.SaveChangesAsync();
+        }
     }
 }

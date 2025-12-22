@@ -5,7 +5,7 @@ using IdentityService.Models;
 using IdentityService.Services;
 using MediatR;
 
-namespace IdentityService.Features.Commands.PasswordReset
+namespace IdentityService.Features.Commands.PasswordReset.RequestPasswordReset
 {
     public record RequestPasswordResetCommand(string Email) : IRequest<RequestResponse<RequestPasswordResetResponseDto>>;
 
@@ -15,24 +15,22 @@ namespace IdentityService.Features.Commands.PasswordReset
         public DateTime ExpiresAt { get; set; }
     }
 
-    public class RequestPasswordResetCommandHandler : IRequestHandler<RequestPasswordResetCommand, RequestResponse<RequestPasswordResetResponseDto>>
+    public class RequestPasswordResetCommandHandler
+        : IRequestHandler<RequestPasswordResetCommand, RequestResponse<RequestPasswordResetResponseDto>>
     {
-        private readonly IRepository _userRepository;
+        private readonly IRepository _repository;
         private readonly IEmailService _emailService;
-        private readonly IdentityDbContext _context;
         private readonly IValidator<RequestPasswordResetCommand> _validator;
         private readonly ILogger<RequestPasswordResetCommandHandler> _logger;
 
         public RequestPasswordResetCommandHandler(
-            IRepository userRepository,
+            IRepository repository,
             IEmailService emailService,
-            IdentityDbContext context,
             IValidator<RequestPasswordResetCommand> validator,
             ILogger<RequestPasswordResetCommandHandler> logger)
         {
-            _userRepository = userRepository;
+            _repository = repository;
             _emailService = emailService;
-            _context = context;
             _validator = validator;
             _logger = logger;
         }
@@ -43,7 +41,6 @@ namespace IdentityService.Features.Commands.PasswordReset
         {
             try
             {
-             
                 var validationResult = await _validator.ValidateAsync(request, cancellationToken);
                 if (!validationResult.IsValid)
                 {
@@ -52,11 +49,9 @@ namespace IdentityService.Features.Commands.PasswordReset
                         400);
                 }
 
-             
-                var user = await _userRepository.GetByEmailAsync(request.Email);
+                var user = await _repository.GetByEmailAsync(request.Email);
                 if (user == null)
                 {
-                   
                     _logger.LogInformation("Password reset requested for non-existent email: {Email}", request.Email);
                     return RequestResponse<RequestPasswordResetResponseDto>.Success(
                         new RequestPasswordResetResponseDto
@@ -83,8 +78,7 @@ namespace IdentityService.Features.Commands.PasswordReset
                     IsActive = true
                 };
 
-                _context.PasswordResetRequests.Add(resetRequest);
-                await _context.SaveChangesAsync();
+                await _repository.CreatePasswordResetRequestAsync(resetRequest);
 
                 await _emailService.SendPasswordResetEmailAsync(request.Email, resetCode);
 

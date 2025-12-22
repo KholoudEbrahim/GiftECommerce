@@ -18,28 +18,32 @@ namespace IdentityService.Services
         {
             try
             {
-                var smtpSettings = _configuration.GetSection("SmtpSettings");
+                
+                var emailSettings = _configuration.GetSection("EmailSettings");
 
-                using var client = new SmtpClient(smtpSettings["Host"])
+                using var client = new SmtpClient(emailSettings["SmtpServer"])
                 {
-                    Port = int.Parse(smtpSettings["Port"]!),
+                    Port = int.Parse(emailSettings["SmtpPort"]!),
                     Credentials = new NetworkCredential(
-                        smtpSettings["Username"],
-                        smtpSettings["Password"]
+                        emailSettings["SmtpUsername"],
+                        emailSettings["SmtpPassword"]
                     ),
-                    EnableSsl = true
+                    EnableSsl = bool.Parse(emailSettings["EnableSsl"] ?? "true")
                 };
 
                 var mailMessage = new MailMessage
                 {
-                    From = new MailAddress(smtpSettings["FromEmail"]!),
+                    From = new MailAddress(
+                        emailSettings["FromAddress"]!,
+                        emailSettings["FromName"]
+                    ),
                     Subject = "Password Reset Request",
                     Body = $@"
-                        <h3>Password Reset Request</h3>
-                        <p>Your password reset code is: <strong>{resetCode}</strong></p>
-                        <p>This code will expire in 15 minutes.</p>
-                        <p>If you didn't request this, please ignore this email.</p>
-                    ",
+                <h3>Password Reset Request</h3>
+                <p>Your password reset code is: <strong>{resetCode}</strong></p>
+                <p>This code will expire in 15 minutes.</p>
+                <p>If you didn't request this, please ignore this email.</p>
+            ",
                     IsBodyHtml = true
                 };
                 mailMessage.To.Add(email);
