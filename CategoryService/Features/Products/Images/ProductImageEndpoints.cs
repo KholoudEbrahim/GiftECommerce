@@ -11,7 +11,7 @@ namespace CategoryService.Features.Products.Images
             var group = app.MapGroup("/api/images").WithTags("Images");
 
             // Upload Product Image
-            group.MapPost("/images", async (IFormFile file, ISender sender) =>
+            group.MapPost("/products", async (IFormFile file, ISender sender) =>
             {
                 
                 var command = new UploadProductImage.Command(file);
