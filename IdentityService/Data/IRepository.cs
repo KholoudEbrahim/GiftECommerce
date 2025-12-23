@@ -20,6 +20,10 @@ namespace IdentityService.Data
         Task<List<PasswordResetRequest>> GetActivePasswordResetRequestsByEmailAsync(string email);
         Task<PasswordResetRequest> UpdatePasswordResetRequestAsync(PasswordResetRequest request);
         Task<int> InvalidatePasswordResetRequestsAsync(string email);
+        // RefreshToken operations for logout
+        Task<List<RefreshToken>> GetActiveRefreshTokensByUserIdAsync(Guid userId);
+        Task<int> RevokeAllRefreshTokensForUserAsync(Guid userId);
+        Task<int> CleanupExpiredRefreshTokensAsync();
 
     }
 }

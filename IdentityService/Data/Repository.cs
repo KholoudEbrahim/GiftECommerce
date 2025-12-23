@@ -161,5 +161,40 @@ namespace IdentityService.Data
 
             return await _context.SaveChangesAsync();
         }
+        public async Task<List<RefreshToken>> GetActiveRefreshTokensByUserIdAsync(Guid userId)
+        {
+            return await _context.RefreshTokens
+                .Where(rt => rt.UserId == userId
+                    && !rt.IsRevoked
+                    && rt.ExpiresAt > DateTime.UtcNow
+                    && rt.IsActive)
+                .ToListAsync();
+        }
+
+        public async Task<int> RevokeAllRefreshTokensForUserAsync(Guid userId)
+        {
+            var tokens = await GetActiveRefreshTokensByUserIdAsync(userId);
+
+            foreach (var token in tokens)
+            {
+                token.IsRevoked = true;
+                token.UpdatedAt = DateTime.UtcNow;
+            }
+
+            return await _context.SaveChangesAsync();
+        }
+
+        public async Task<int> CleanupExpiredRefreshTokensAsync()
+        {
+            var expiredTokens = await _context.RefreshTokens
+                .Where(rt => rt.ExpiresAt <= DateTime.UtcNow
+                    || (rt.IsRevoked && rt.UpdatedAt <= DateTime.UtcNow.AddDays(-30)))
+                .ToListAsync();
+
+            _context.RefreshTokens.RemoveRange(expiredTokens);
+
+            return await _context.SaveChangesAsync();
+        }
     }
+
 }
