@@ -25,176 +25,101 @@ using static IdentityService.Features.Commands.SignUp.SignUpCommand;
 
 namespace IdentityService
 {
-    public class Program
+      public class Program
     {
         public static void Main(string[] args)
         {
-            var builder = WebApplication.CreateBuilder(args);
-
-           
-            builder.Services.AddDbContext<IdentityDbContext>((services, options) =>
+            Console.WriteLine("?? Starting Identity Service...");
+            
+            try
             {
-                var configuration = services.GetRequiredService<IConfiguration>();
-                var connectionString = configuration.GetConnectionString("DefaultConnection");
+                var builder = WebApplication.CreateBuilder(args);
 
-                options.UseSqlServer(connectionString, sqlOptions =>
+                // Database
+                builder.Services.AddDbContext<IdentityDbContext>(options =>
+                    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection") 
+                        ?? "Server=sqlserver;Database=IdentityDb;User Id=sa;Password=Strong!Passw0rd123;TrustServerCertificate=True"));
+
+                // Services
+                builder.Services.AddScoped<IRepository, Repository>();
+                builder.Services.AddScoped<IPasswordService, PasswordService>();
+                builder.Services.AddScoped<ITokenService, TokenService>();
+                builder.Services.AddScoped<IEmailService, EmailService>();
+
+                // Validators
+                builder.Services.AddScoped<IValidator<SignUpCommand>, SignUpValidator>();
+                builder.Services.AddScoped<IValidator<LoginCommand>, LoginValidator>();
+                builder.Services.AddScoped<IValidator<VerifyResetCodeCommand>, VerifyResetCodeValidator>();
+                builder.Services.AddScoped<IValidator<ResetPasswordCommand>, ResetPasswordValidator>();
+                builder.Services.AddScoped<IValidator<RequestPasswordResetCommand>, RequestPasswordResetValidator>();
+
+                // MediatR
+                builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+
+                // ? FIXED: RabbitMQ uses "rabbit" not "localhost"
+                builder.Services.AddMassTransit(x =>
                 {
-                    sqlOptions.EnableRetryOnFailure(
-                        maxRetryCount: 5,
-                        maxRetryDelay: TimeSpan.FromSeconds(30),
-                        errorNumbersToAdd: null);
-                    sqlOptions.MigrationsAssembly(typeof(Program).Assembly.FullName);
-                });
-            });
-
-      
-            builder.Services.AddScoped<IRepository, Repository>();
-            builder.Services.AddScoped<IPasswordService, PasswordService>();
-            builder.Services.AddScoped<ITokenService, TokenService>();
-            builder.Services.AddScoped<IEmailService, EmailService>();
-
-         
-            builder.Services.AddScoped<IValidator<SignUpCommand>, SignUpValidator>();
-            builder.Services.AddScoped<IValidator<LoginCommand>, LoginValidator>();
-            builder.Services.AddScoped<IValidator<VerifyResetCodeCommand>, VerifyResetCodeValidator>();
-            builder.Services.AddScoped<IValidator<ResetPasswordCommand>, ResetPasswordValidator>();
-            builder.Services.AddScoped<IValidator<RequestPasswordResetCommand>, RequestPasswordResetValidator>();
-
-            builder.Services.AddMediatR(cfg =>
-                cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
-
-            builder.Services.AddMassTransit(x =>
-            {
-                x.SetKebabCaseEndpointNameFormatter();
-                x.UsingRabbitMq((context, cfg) =>
-                {
-                    cfg.Host(builder.Configuration["RabbitMQ:Host"], "/", h =>
+                    x.SetKebabCaseEndpointNameFormatter();
+                    x.UsingRabbitMq((context, cfg) =>
                     {
-                        h.Username(builder.Configuration["RabbitMQ:Username"]);
-                        h.Password(builder.Configuration["RabbitMQ:Password"]);
+                        cfg.Host("rabbit", "/", h =>
+                        {
+                            h.Username("admin");
+                            h.Password("admin123");
+                        });
                     });
                 });
-            });
 
-     
-            builder.Services.ConfigureHttpJsonOptions(options =>
-            {
-                options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-                options.SerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
-            });
+                // ? FIXED: Add Authentication
+                builder.Services.AddAuthentication();
+                builder.Services.AddAuthorization();
 
-       
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo
+                // Swagger
+                builder.Services.AddEndpointsApiExplorer();
+                builder.Services.AddSwaggerGen(c => c.SwaggerDoc("v1", new OpenApiInfo 
+                    { Title = "Identity Service API", Version = "v1" }));
+
+                var app = builder.Build();
+
+                if (app.Environment.IsDevelopment())
                 {
-                    Title = "Identity Service API",
-                    Version = "v1",
-                    Description = "Identity Service for Gift Ecommerce"
-                });
-            });
+                    app.UseSwagger();
+                    app.UseSwaggerUI();
+                }
 
-            var app = builder.Build();
+                app.UseHttpsRedirection();
 
-
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
-
-            app.UseHttpsRedirection();
-
-          
-            ApplyMigrationsWithRetry(app);
-
-       
-            app.MapRequestPasswordResetEndpoint();
-            app.MapPasswordResetEndpoints();
-            app.MapResetPasswordEndpoint();
-            app.MapSignUpEndpoint();
-            app.MapLoginEndpoint();
-
-        
-            app.MapGet("/health", () =>
-            {
-                return Results.Ok(new
-                {
-                    status = "Healthy",
-                    service = "Identity Service",
-                    timestamp = DateTime.UtcNow,
-                    version = "1.0.0",
-                    database = "Connected",
-                    environment = app.Environment.EnvironmentName
-                });
-            })
-            .WithName("HealthCheck")
-            .WithTags("Health");
-
-            app.UseAuthorization();
-            app.Run();
-        }
-
-        private static void ApplyMigrationsWithRetry(WebApplication app)
-        {
-            var maxRetries = 10;
-            var retryDelay = TimeSpan.FromSeconds(5);
-
-            for (int i = 0; i < maxRetries; i++)
-            {
+                // Simple DB check
                 try
                 {
-                    using (var scope = app.Services.CreateScope())
-                    {
-                        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
-
-                      
-                        if (dbContext.Database.CanConnect())
-                        {
-                            Console.WriteLine($"Database connection successful on attempt {i + 1}");
-
-                          
-                            var databaseName = dbContext.Database.GetDbConnection().Database;
-                            var sql = $"SELECT COUNT(*) FROM sys.databases WHERE name = '{databaseName}'";
-                            var databaseExists = dbContext.Database.ExecuteSqlRaw(sql) > 0;
-
-                            if (!databaseExists)
-                            {
-                                Console.WriteLine($"Creating database: {databaseName}");
-                                dbContext.Database.EnsureCreated();
-                            }
-                            else
-                            {
-                                Console.WriteLine($"Database {databaseName} already exists");
-                            }
-
-                          
-                            Console.WriteLine("Applying migrations...");
-                            dbContext.Database.Migrate();
-                            Console.WriteLine("Migrations applied successfully!");
-                            return;
-                        }
-                    }
+                    using var scope = app.Services.CreateScope();
+                    var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+                    if (db.Database.CanConnect()) Console.WriteLine("? Database connected");
                 }
-                catch (SqlException ex) when (i < maxRetries - 1)
-                {
-                    Console.WriteLine($"Database connection failed on attempt {i + 1}: {ex.Message}");
-                    Console.WriteLine($"Retrying in {retryDelay.TotalSeconds} seconds...");
-                    Thread.Sleep(retryDelay);
+                catch { }
 
-                   
-                    retryDelay = TimeSpan.FromSeconds(retryDelay.TotalSeconds * 1.5);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Unexpected error: {ex.Message}");
-                    throw;
-                }
+                // Endpoints
+                app.MapRequestPasswordResetEndpoint();
+                app.MapPasswordResetEndpoints();
+                app.MapResetPasswordEndpoint();
+                app.MapSignUpEndpoint();
+                app.MapLoginEndpoint();
+
+                app.MapGet("/health", () => Results.Ok(new { status = "Healthy", service = "Identity Service" }));
+
+                // ? FIXED: Authentication middleware
+                app.UseAuthentication();
+                app.UseAuthorization();
+
+                Console.WriteLine("? Starting on port 8080...");
+                app.Run();
             }
-
-            Console.WriteLine("Failed to connect to database after all retries");
-               throw new InvalidOperationException("Failed to connect to database");
+            catch (Exception ex)
+            {
+                Console.WriteLine($"? ERROR: {ex.Message}");
+                Thread.Sleep(10000);
+                throw;
+            }
         }
     }
 }
