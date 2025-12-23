@@ -59,7 +59,7 @@ services:
       - sqlserver
       - redis
       - identityservice
-      - productservice
+      - categoryservice
 
   orderservice:
     image: ${DOCKER_REGISTRY-}orderservice
