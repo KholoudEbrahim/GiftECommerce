@@ -6,12 +6,30 @@ using IdentityService.Data;
 using IdentityService.Services;
 using IdentityService.Features.Commands.SignUp;
 using IdentityService.Features.Commands.Login;
-using IdentityService.Features.Commands.PasswordReset;
+using IdentityService.Features.Commands.PasswordReset.RequestPasswordReset;
+using IdentityService.Features.Commands.PasswordReset.ResendResetCode;
+using IdentityService.Features.Commands.PasswordReset.VerifyResetCode;
+using IdentityService.Features.Commands.SignUp;
+using IdentityService.Features.Shared;
+using IdentityService.Services;
 using MassTransit;
+using MassTransit.RabbitMqTransport;
+using MediatR;
+using Microsoft.AspNetCore.Http.Json;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
+using System;
+using System.Text.Json;
+using static IdentityService.Features.Commands.Login.LoginCommand;
+using static IdentityService.Features.Commands.PasswordReset.ResendResetCode.ResetPasswordCommand;
+using static IdentityService.Features.Commands.PasswordReset.VerifyResetCode.VerifyResetCodeCommand;
+using static IdentityService.Features.Commands.SignUp.SignUpCommand;
 
 namespace IdentityService
 {
-    public class Program
+      public class Program
     {
         public static void Main(string[] args)
         {

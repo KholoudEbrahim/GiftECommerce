@@ -11,7 +11,7 @@
      CategoryDto Category,
      List<OccasionDto> Occasions,
      List<string>? Tags,
-     StockInfoDto? StockInfo, // سيأتي من InventoryService
+     StockInfoDto? StockInfo,
      DateTime CreatedAt
  );
 }
