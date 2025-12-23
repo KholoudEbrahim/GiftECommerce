@@ -88,7 +88,7 @@ services:
       - ConnectionStrings__CartDatabase=Server=sqlserver;Database=CartDb;User Id=sa;Password=Strong!Passw0rd123;TrustServerCertificate=True;MultipleActiveResultSets=True
       - Redis__ConnectionString=redis:6379,abortConnect=false
       - Redis__InstanceName=CartService
-      - ExternalServices__InventoryServiceBaseUrl=http://productservice:8080
+      - ExternalServices__InventoryServiceBaseUrl=http://categoryservice:8080
       - ExternalServices__ProfileServiceBaseUrl=http://userprofileservice:8080
       - ExternalServices__TimeoutInSeconds=30
       - ExternalServices__RetryCount=3

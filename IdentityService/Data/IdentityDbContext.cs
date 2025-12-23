@@ -15,7 +15,7 @@ namespace IdentityService.Data
         public DbSet<User> Users { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<PasswordResetRequest> PasswordResetRequests { get; set; }
-    
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -56,8 +56,17 @@ namespace IdentityService.Data
                     .HasMaxLength(50)
                     .HasDefaultValue("User");
 
+                entity.Property(e => e.EmailVerified)
+                    .HasDefaultValue(false);
+
                 entity.Property(e => e.CreatedAt)
                     .HasDefaultValueSql("GETUTCDATE()");
+
+                entity.Property(e => e.IsDeleted)
+                    .HasDefaultValue(false);
+
+                entity.Property(e => e.IsActive)
+                    .HasDefaultValue(true);
             });
 
             // RefreshToken configuration
@@ -66,13 +75,25 @@ namespace IdentityService.Data
                 entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.Token).IsUnique();
 
+                entity.Property(e => e.IsRevoked)
+                    .HasDefaultValue(false);
+
+                entity.Property(e => e.CreatedAt)
+                    .HasDefaultValueSql("GETUTCDATE()");
+
+                entity.Property(e => e.IsDeleted)
+                    .HasDefaultValue(false);
+
+                entity.Property(e => e.IsActive)
+                    .HasDefaultValue(true);
+
                 entity.HasOne(e => e.User)
                     .WithMany(u => u.RefreshTokens)
                     .HasForeignKey(e => e.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-
+            // PasswordResetRequest configuration
             modelBuilder.Entity<PasswordResetRequest>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -90,8 +111,17 @@ namespace IdentityService.Data
                 entity.Property(e => e.ExpiresAt)
                     .IsRequired();
 
+                entity.Property(e => e.IsUsed)
+                    .HasDefaultValue(false);
+
                 entity.Property(e => e.CreatedAt)
                     .HasDefaultValueSql("GETUTCDATE()");
+
+                entity.Property(e => e.IsDeleted)
+                    .HasDefaultValue(false);
+
+                entity.Property(e => e.IsActive)
+                    .HasDefaultValue(true);
             });
         }
     }
