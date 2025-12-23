@@ -28,18 +28,24 @@ namespace IdentityService
             var builder = WebApplication.CreateBuilder(args);
 
 
-
+            builder.Services.AddDbContext<IdentityDbContext>(options =>
+            {
+                var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+                var connectionString = configuration.GetConnectionString("DefaultConnection");
+                options.UseSqlServer(connectionString, sqlOptions =>
+                {
+                    sqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: 5,
+                        maxRetryDelay: TimeSpan.FromSeconds(30),
+                        errorNumbersToAdd: null);
+                    sqlOptions.MigrationsAssembly(typeof(Program).Assembly.FullName);
+                });
+            });
             Console.WriteLine("=== DOCKER START ===");
-            Console.WriteLine($"In Docker: {Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")}");
+
             Console.WriteLine($"URLS: {Environment.GetEnvironmentVariable("ASPNETCORE_URLS")}");
 
-
-     
-
-            builder.Services.AddDbContext<IdentityDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-    
+      
             builder.Services.AddScoped<IRepository, Repository>();
 
  
@@ -68,17 +74,27 @@ namespace IdentityService
 
                 x.UsingRabbitMq((context, cfg) =>
                 {
-                    cfg.Host(builder.Configuration["RabbitMQ:Host"], "/", h =>
-                    {
-                        h.Username(builder.Configuration["RabbitMQ:Username"]);
-                        h.Password(builder.Configuration["RabbitMQ:Password"]);
-                    });
-                });
-            });
+                    var rabbitMqHost = builder.Configuration["RabbitMQ:Host"]
+                        ?? "localhost"; 
 
+                    var rabbitMqUsername = builder.Configuration["RabbitMQ:Username"]
+                        ?? "guest";
+
+                    var rabbitMqPassword = builder.Configuration["RabbitMQ:Password"]
+                        ?? "guest"; 
+
+                    cfg.Host(rabbitMqHost, "/", h =>
+                    {
+                        h.Username(rabbitMqUsername);
+                        h.Password(rabbitMqPassword);
+                    });
             builder.Services.AddScoped<IUserEventPublisher, UserEventPublisher>();
 
 
+
+            });
+
+     
             builder.Services.ConfigureHttpJsonOptions(options =>
             {
                 options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;

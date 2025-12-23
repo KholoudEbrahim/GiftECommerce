@@ -92,7 +92,7 @@ namespace IdentityService.Services
                 .FirstOrDefaultAsync(rt => rt.Token == token && !rt.IsRevoked);
         }
 
-        public async Task RevokeRefreshTokenAsync(string token, string replacedByToken = null)
+        public async Task RevokeRefreshTokenAsync(string token, string? replacedByToken = null)
         {
             var refreshToken = await GetRefreshTokenAsync(token);
             if (refreshToken != null)
