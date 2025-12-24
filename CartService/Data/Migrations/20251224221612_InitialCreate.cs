@@ -15,7 +15,8 @@ namespace CartService.Data.Migrations
                 name: "Carts",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     AnonymousId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     Status = table.Column<string>(type: "nvarchar(450)", nullable: false),
@@ -36,9 +37,10 @@ namespace CartService.Data.Migrations
                 name: "CartItems",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CartId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CartId = table.Column<int>(type: "int", nullable: false),
+                    ProductId = table.Column<int>(type: "int", nullable: false),
                     ProductName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UnitPrice = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     ImageUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),

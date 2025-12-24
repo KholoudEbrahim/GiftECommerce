@@ -1,11 +1,16 @@
 ﻿namespace IdentityService.Models
 {
-    public class BaseEntity
+    public abstract class BaseEntity<TKey>
     {
-        public Guid Id { get; set; }
+        public TKey Id { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
         public bool IsDeleted { get; set; } = false;
         public bool IsActive { get; set; } = true;
+
+    }
+    public abstract class BaseEntity : BaseEntity<Guid>
+    {
     }
 }

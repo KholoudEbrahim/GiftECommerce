@@ -12,7 +12,19 @@ namespace CartService.Data.Configurations
 
             builder.HasKey(i => i.Id);
 
+        
+            builder.Property(i => i.Id)
+                .ValueGeneratedOnAdd(); 
+
+            
+            builder.Property(i => i.ProductId)
+                .IsRequired();
+
             builder.Property(i => i.Name)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            builder.Property(i => i.ProductName)
                 .IsRequired()
                 .HasMaxLength(200);
 
@@ -21,12 +33,16 @@ namespace CartService.Data.Configurations
                 .IsRequired();
 
             builder.Property(i => i.ImageUrl)
-                .IsRequired()
+                .IsRequired(false) 
                 .HasMaxLength(500);
 
             builder.Property(i => i.Quantity)
                 .IsRequired();
 
+            builder.Property(i => i.AddedAt)
+                .IsRequired();
+
+    
             builder.HasIndex(i => new { i.CartId, i.ProductId })
                 .IsUnique()
                 .HasDatabaseName("IX_CartItems_CartId_ProductId");
@@ -36,6 +52,9 @@ namespace CartService.Data.Configurations
 
             builder.Property(i => i.UpdatedAt)
                 .IsRequired(false);
+
+          
+            builder.HasQueryFilter(i => !i.IsDeleted && i.IsActive);
         }
     }
 }

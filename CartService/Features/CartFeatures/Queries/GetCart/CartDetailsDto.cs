@@ -6,7 +6,7 @@ namespace CartService.Features.CartFeatures.Queries.GetCart
 {
     public record CartDetailsDto
     {
-        public Guid CartId { get; init; }
+        public int CartId { get; init; }
         public Guid? UserId { get; init; }
         public string? AnonymousId { get; init; }
         public CartStatus Status { get; init; }

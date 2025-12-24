@@ -5,9 +5,9 @@ namespace CartService.Services
 {
     public interface IInventoryServiceClient
     {
-        Task<ProductInfoDto> GetProductInfoAsync(Guid productId, CancellationToken cancellationToken);
+        Task<ProductInfoDto> GetProductInfoAsync(int productId, CancellationToken cancellationToken);
 
-        Task<bool> ValidateProductAvailabilityAsync(Guid productId, int quantity, CancellationToken cancellationToken = default);
+        Task<bool> ValidateProductAvailabilityAsync(int productId, int quantity, CancellationToken cancellationToken = default);
     }
 
 

@@ -11,7 +11,7 @@ namespace CartService.Features.CartFeatures.Commands.RemoveCartItem
         public static void MapRemoveItemEndpoint(this IEndpointRouteBuilder app)
         {
             app.MapDelete("/api/cart/items/{productId}", async (
-                [FromRoute] Guid productId,
+                [FromRoute] int productId,
                 [FromServices] IMediator mediator,
                 [FromServices] IUserContext userContext,
                 CancellationToken cancellationToken) =>

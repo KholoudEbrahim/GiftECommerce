@@ -7,7 +7,7 @@ namespace CartService.Features.CartFeatures.Commands.UpdateItemQuantity
 {
     public record UpdateCartItemQuantityCommand(Guid? UserId,
        string? AnonymousId ,
-        Guid ProductId,
+        int ProductId,
         int Quantity) : IRequest<CartItemQuantityDTO>
     {
 
@@ -44,7 +44,7 @@ namespace CartService.Features.CartFeatures.Commands.UpdateItemQuantity
                 return new CartItemQuantityDTO
                 {
                     CartId = cart.Id,
-                    ItemId = updatedItem?.Id ?? Guid.Empty,
+                    ItemId = updatedItem?.Id ?? 0,
                     Quantity = request.Quantity,
                     SubTotal = cart.SubTotal,
                     Total = cart.Total,

@@ -2,8 +2,8 @@
 {
     public class CartItem : BaseEntity
     {
-        public Guid CartId { get; private set; }
-        public Guid ProductId { get; private set; }
+        public int CartId { get; private set; }
+        public int ProductId { get; private set; }
         public string ProductName { get; private set; } = default!;
         public decimal UnitPrice { get; private set; }
         public string? ImageUrl { get; private set; }
@@ -19,12 +19,12 @@
         private CartItem() { }
 
         public static CartItem Create(
-            Guid cartId,
-            Guid productId,
-            string name,
-            decimal unitPrice,
-            string imageUrl,
-            int quantity)
+             int cartId,
+               int productId,
+             string name,
+             decimal unitPrice,
+             string imageUrl,
+             int quantity)
         {
             if (quantity <= 0)
                 throw new ArgumentException("Quantity must be greater than 0", nameof(quantity));
@@ -34,14 +34,15 @@
 
             return new CartItem
             {
-                Id = Guid.NewGuid(),
+             
                 CartId = cartId,
                 ProductId = productId,
                 Name = name ?? throw new ArgumentNullException(nameof(name)),
                 UnitPrice = unitPrice,
                 ImageUrl = imageUrl ?? throw new ArgumentNullException(nameof(imageUrl)),
                 Quantity = quantity,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                AddedAt = DateTime.UtcNow
             };
         }
 

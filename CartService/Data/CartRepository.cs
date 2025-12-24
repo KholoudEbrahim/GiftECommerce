@@ -1,4 +1,5 @@
 ﻿using CartService.Models;
+using CartService.Models.enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace CartService.Data
@@ -16,10 +17,11 @@ namespace CartService.Data
         {
             return await _context.Carts
                 .Include(c => c.Items)
-                .FirstOrDefaultAsync(c => c.UserId == userId && c.Status == Models.enums.CartStatus.Active,
+                .FirstOrDefaultAsync(c => c.UserId == userId && c.Status == CartStatus.Active,
                     cancellationToken);
-
         }
+
+
 
         public async Task<Cart?> GetActiveCartByAnonymousIdAsync(string anonymousId, CancellationToken cancellationToken = default)
         {
@@ -29,13 +31,13 @@ namespace CartService.Data
                     cancellationToken);
         }
 
-        public async Task<Cart?> GetByIdAsync(Guid cartId, CancellationToken cancellationToken = default)
+        public async Task<Cart?> GetByIdAsync(int cartId, CancellationToken cancellationToken = default)
         {
             return await _context.Carts
                 .FindAsync(new object[] { cartId }, cancellationToken);
         }
 
-        public async Task<Cart?> GetCartWithItemsAsync(Guid cartId, CancellationToken cancellationToken = default)
+        public async Task<Cart?> GetCartWithItemsAsync(int cartId, CancellationToken cancellationToken = default)
         {
             return await _context.Carts
                 .Include(c => c.Items)
@@ -53,7 +55,7 @@ namespace CartService.Data
             await Task.CompletedTask;
         }
 
-        public async Task<bool> ExistsAsync(Guid cartId, CancellationToken cancellationToken = default)
+        public async Task<bool> ExistsAsync(int cartId, CancellationToken cancellationToken = default)
         {
             return await _context.Carts
                 .AnyAsync(c => c.Id == cartId, cancellationToken);

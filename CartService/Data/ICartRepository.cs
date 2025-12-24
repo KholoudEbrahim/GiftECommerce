@@ -6,11 +6,11 @@ namespace CartService.Data
     {
         Task<Cart?> GetActiveCartByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
         Task<Cart?> GetActiveCartByAnonymousIdAsync(string anonymousId, CancellationToken cancellationToken = default);
-        Task<Cart?> GetByIdAsync(Guid cartId, CancellationToken cancellationToken = default);
-        Task<Cart?> GetCartWithItemsAsync(Guid cartId, CancellationToken cancellationToken = default);
+        Task<Cart?> GetByIdAsync(int cartId, CancellationToken cancellationToken = default);
+        Task<Cart?> GetCartWithItemsAsync(int cartId, CancellationToken cancellationToken = default);
         Task AddAsync(Cart cart, CancellationToken cancellationToken = default);
         Task UpdateAsync(Cart cart, CancellationToken cancellationToken = default);
-        Task<bool> ExistsAsync(Guid cartId, CancellationToken cancellationToken = default);
+        Task<bool> ExistsAsync(int cartId, CancellationToken cancellationToken = default);
         Task SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }

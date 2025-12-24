@@ -38,7 +38,7 @@ namespace CartService.Features.CartFeatures.Commands.AddCartItem
 
         public record AddCartItemRequest
         {
-            public required Guid ProductId { get; init; }
+            public required int ProductId { get; init; }
             public required int Quantity { get; init; }
         }
 

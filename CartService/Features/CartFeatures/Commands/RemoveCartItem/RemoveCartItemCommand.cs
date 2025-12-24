@@ -5,9 +5,10 @@ using static CartService.Features.CartFeatures.Commands.RemoveCartItem.RemoveCar
 
 namespace CartService.Features.CartFeatures.Commands.RemoveCartItem
 {
-    public record RemoveCartItemCommand(Guid? UserId,
-      string? AnonymousId,
-      Guid ProductId) : IRequest<RemoveCartItemDTO>
+    public record RemoveCartItemCommand(
+       Guid? UserId,
+        string? AnonymousId,
+        int ProductId) : IRequest<RemoveCartItemDTO>
     {
 
 
