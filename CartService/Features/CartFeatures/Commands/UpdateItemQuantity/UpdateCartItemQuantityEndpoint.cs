@@ -9,7 +9,7 @@ namespace CartService.Features.CartFeatures.Commands.UpdateItemQuantity
         public static void MapUpdateItemQuantityEndpoint(this IEndpointRouteBuilder app)
         {
             app.MapPut("/api/cart/items/{productId}", async (
-                [FromRoute] Guid productId,
+                [FromRoute] int productId,
                 [FromBody] UpdateItemQuantityRequest request,
                 [FromServices] IMediator mediator,
                 [FromServices] IUserContext userContext,

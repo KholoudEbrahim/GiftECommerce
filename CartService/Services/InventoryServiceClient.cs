@@ -34,7 +34,7 @@ namespace CartService.Services
             _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
         }
 
-        public async Task<ProductInfoDto> GetProductInfoAsync(Guid productId, CancellationToken cancellationToken = default)
+        public async Task<ProductInfoDto> GetProductInfoAsync(int productId, CancellationToken cancellationToken = default)
         {
             var cacheKey = $"product:{productId}";
 
@@ -83,7 +83,7 @@ namespace CartService.Services
             }
         }
 
-        public async Task<bool> ValidateProductAvailabilityAsync(Guid productId, int quantity, CancellationToken cancellationToken = default)
+        public async Task<bool> ValidateProductAvailabilityAsync(int productId, int quantity, CancellationToken cancellationToken = default)
         {
             try
             {

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CartService.Data.Migrations
 {
     [DbContext(typeof(CartDbContext))]
-    [Migration("20251219030726_InitialCreate")]
+    [Migration("20251224221612_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -27,9 +27,11 @@ namespace CartService.Data.Migrations
 
             modelBuilder.Entity("CartService.Models.Cart", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("AnonymousId")
                         .HasMaxLength(100)
@@ -82,15 +84,17 @@ namespace CartService.Data.Migrations
 
             modelBuilder.Entity("CartService.Models.CartItem", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("AddedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("CartId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("CartId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -111,8 +115,8 @@ namespace CartService.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
 
                     b.Property<string>("ProductName")
                         .IsRequired()

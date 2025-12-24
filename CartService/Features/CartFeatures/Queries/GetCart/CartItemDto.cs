@@ -2,8 +2,8 @@
 {
     public record CartItemDto
     {
-        public Guid Id { get; init; }
-        public Guid ProductId { get; init; }
+        public int Id { get; init; }
+        public int ProductId { get; init; }
         public string Name { get; init; } = default!;
         public decimal UnitPrice { get; init; }
         public string ImageUrl { get; init; } = default!;

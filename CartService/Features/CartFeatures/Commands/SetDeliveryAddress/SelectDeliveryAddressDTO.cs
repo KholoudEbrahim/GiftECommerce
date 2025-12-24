@@ -2,7 +2,7 @@
 {
     public record SelectDeliveryAddressDTO
     {
-        public Guid CartId { get; init; }
+        public int CartId { get; init; }
         public Guid AddressId { get; init; }
         public decimal DeliveryFee { get; init; }
         public decimal Total { get; init; }

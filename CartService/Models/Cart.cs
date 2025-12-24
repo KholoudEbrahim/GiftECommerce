@@ -24,7 +24,7 @@ namespace CartService.Models
         {
             return new Cart
             {
-                Id = Guid.NewGuid(),
+                
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow
             };
@@ -37,7 +37,7 @@ namespace CartService.Models
 
             return new Cart
             {
-                Id = Guid.NewGuid(),
+               
                 AnonymousId = anonymousId,
                 CreatedAt = DateTime.UtcNow
             };
@@ -62,7 +62,7 @@ namespace CartService.Models
             RecalculateTotals();
         }
 
-        public void UpdateItemQuantity(Guid productId, int quantity)
+        public void UpdateItemQuantity(int productId, int quantity) 
         {
             if (quantity <= 0)
             {
@@ -78,7 +78,7 @@ namespace CartService.Models
             RecalculateTotals();
         }
 
-        public void RemoveItem(Guid productId)
+        public void RemoveItem(int productId) 
         {
             var item = _items.FirstOrDefault(i => i.ProductId == productId);
             if (item != null)
@@ -131,7 +131,7 @@ namespace CartService.Models
 
         private decimal CalculateDeliveryFee()
         {
-            // Default fee, in production this would come from a delivery service
+           
             return SubTotal > 1000 ? 0 : 50; 
         }
     }

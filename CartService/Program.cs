@@ -162,11 +162,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<CartDbContext>();
+    dbContext.Database.Migrate();
+} 
 
-// Apply migrations on startup
 await ApplyMigrationsAsync(app.Services);
 
-// Global exception handler
 app.UseExceptionHandler();
 
 // Custom middleware

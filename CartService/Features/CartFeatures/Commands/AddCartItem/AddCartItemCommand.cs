@@ -5,8 +5,10 @@ using MediatR;
 
 namespace CartService.Features.CartFeatures.Commands.AddCartItem
 {
-    public  record AddCartItemCommand(Guid? UserId, string? AnonymousId ,
-        Guid ProductId,
+    public record AddCartItemCommand(
+   Guid? UserId,
+        string? AnonymousId,
+        int ProductId,  
         int Quantity) : IRequest<ResultDTO>
     {
 
@@ -14,7 +16,7 @@ namespace CartService.Features.CartFeatures.Commands.AddCartItem
         public class Handler : IRequestHandler<AddCartItemCommand, ResultDTO>
         {
             private readonly ICartRepository _cartRepository;
-           private readonly IInventoryServiceClient _inventoryService;
+            private readonly IInventoryServiceClient _inventoryService;
             private readonly ILogger<Handler> _logger;
 
             public Handler(
@@ -29,23 +31,19 @@ namespace CartService.Features.CartFeatures.Commands.AddCartItem
 
             public async Task<ResultDTO> Handle(AddCartItemCommand request, CancellationToken cancellationToken)
             {
-                // Validate product exists and is available
                 var productInfo = await _inventoryService.GetProductInfoAsync(request.ProductId, cancellationToken);
 
                 if (!productInfo.IsActive)
                     throw new InvalidOperationException($"Product {request.ProductId} is not active");
 
-                // Validate stock availability
                 var isAvailable = await _inventoryService.ValidateProductAvailabilityAsync(
                     request.ProductId, request.Quantity, cancellationToken);
 
                 if (!isAvailable)
                     throw new InvalidOperationException($"Product {request.ProductId} is not available in requested quantity");
 
-                // Get or create cart
                 Cart cart = await GetOrCreateCartAsync(request, cancellationToken);
 
-              
                 var cartItem = CartItem.Create(
                     cart.Id,
                     request.ProductId,
@@ -54,10 +52,7 @@ namespace CartService.Features.CartFeatures.Commands.AddCartItem
                     productInfo.ImageUrl,
                     request.Quantity);
 
-               
                 cart.AddItem(cartItem);
-
-                // Save changes
                 await _cartRepository.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation(
@@ -66,8 +61,8 @@ namespace CartService.Features.CartFeatures.Commands.AddCartItem
 
                 return new ResultDTO
                 {
-                    CartId = cart.Id,
-                    ItemId = cartItem.Id,
+                    CartId = cart.Id,  
+                    ItemId = cartItem.Id, 
                     TotalItems = cart.Items.Count,
                     SubTotal = cart.SubTotal,
                     Total = cart.Total
@@ -105,10 +100,5 @@ namespace CartService.Features.CartFeatures.Commands.AddCartItem
         }
     }
 }
-
-
-
-
-
 
 

@@ -2,8 +2,8 @@
 {
     public record RemoveCartItemDTO
     {
-        public Guid CartId { get; init; }
-        public Guid ProductId { get; init; }
+        public int CartId { get; init; }
+        public int ProductId { get; init; }
         public decimal SubTotal { get; init; }
         public decimal Total { get; init; }
     }

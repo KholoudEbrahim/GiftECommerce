@@ -85,7 +85,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - DOTNET_RUNNING_IN_CONTAINER=true
-      - ConnectionStrings__CartDatabase=Server=sqlserver;Database=CartDb;User Id=sa;Password=Strong!Passw0rd123;TrustServerCertificate=True;MultipleActiveResultSets=True
+      - ConnectionStrings__CartDatabase=Server=sqlserver;Database=CartServiceDb;User Id=sa;Password=Strong!Passw0rd123;TrustServerCertificate=True
       - Redis__ConnectionString=redis:6379,abortConnect=false
       - Redis__InstanceName=CartService
       - ExternalServices__InventoryServiceBaseUrl=http://categoryservice:8080
