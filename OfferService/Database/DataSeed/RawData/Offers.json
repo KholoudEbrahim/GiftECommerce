@@ -1,0 +1,38 @@
+[
+  {
+    "Name": "Welcome Discount",
+    "Description": "Get 10% off on Red Roses",
+    "Type": "Percentage",
+    "Value": 10.0,
+    "StartDateUtc": "2024-01-01T00:00:00Z",
+    "EndDateUtc": "2030-12-31T23:59:59Z",
+    "IsActive": true,
+    "ProductId": 1,
+    "CategoryId": null,
+    "OccasionId": null
+  },
+  {
+    "Name": "Wedding Season Special",
+    "Description": "$50 Flat discount on all Wedding items",
+    "Type": "FixedAmount",
+    "Value": 50.00,
+    "StartDateUtc": "2024-05-01T00:00:00Z",
+    "EndDateUtc": "2030-09-30T23:59:59Z",
+    "IsActive": true,
+    "ProductId": null,
+    "CategoryId": null,
+    "OccasionId": 1
+  },
+  {
+    "Name": "Flower Power Sale",
+    "Description": "15% off all Flowers",
+    "Type": "Percentage",
+    "Value": 15.0,
+    "StartDateUtc": "2024-02-10T00:00:00Z",
+    "EndDateUtc": "2030-02-15T23:59:59Z",
+    "IsActive": true,
+    "ProductId": null,
+    "CategoryId": 1,
+    "OccasionId": null
+  }
+]
