@@ -3,7 +3,7 @@ using UserProfileService.Data;
 using UserProfileService.Features.Shared;
 using UserProfileService.Models;
 
-namespace UserProfileService.Features.UpdateProfile
+namespace UserProfileService.Features.Commands.UpdateProfile
 {
     public record UpdateProfileCommand(
      Guid UserId,

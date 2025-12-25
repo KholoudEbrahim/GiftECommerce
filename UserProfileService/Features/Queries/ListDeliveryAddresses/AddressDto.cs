@@ -1,6 +1,6 @@
-﻿namespace UserProfileService.Features.GetProfile
+﻿namespace UserProfileService.Features.Queries.ListDeliveryAddresses
 {
-    public class DeliveryAddressDto
+    public record AddressDto
     {
         public Guid Id { get; set; }
         public string Alias { get; set; }
@@ -14,5 +14,4 @@
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
-
 }

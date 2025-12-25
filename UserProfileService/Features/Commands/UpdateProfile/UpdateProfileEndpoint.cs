@@ -2,7 +2,7 @@
 using MediatR;
 using UserProfileService.Features.Shared;
 
-namespace UserProfileService.Features.UpdateProfile
+namespace UserProfileService.Features.Commands.UpdateProfile
 {
     public static class UpdateProfileEndpoint
     {

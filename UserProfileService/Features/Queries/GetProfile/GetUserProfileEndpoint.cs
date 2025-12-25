@@ -2,20 +2,19 @@
 using MediatR;
 using UserProfileService.Features.Shared;
 
-namespace UserProfileService.Features.DeliveryAddress
+namespace UserProfileService.Features.Queries.GetProfile
 {
-    public static class AddDeliveryAddressEndpoint
+    public static class GetUserProfileEndpoint
     {
-        public static void MapAddDeliveryAddressEndpoint(this IEndpointRouteBuilder app)
+        public static void MapGetUserProfileEndpoint(this IEndpointRouteBuilder app)
         {
-            app.MapPost("api/profile/addresses", async (
+            app.MapGet("api/profile", async (
                 HttpContext httpContext,
-                AddDeliveryAddressRequest request,
                 IMediator mediator,
-                IValidator<AddDeliveryAddressCommand> validator,
+                IValidator<GetUserProfileQuery> validator,
                 CancellationToken cancellationToken) =>
             {
-                // Get user ID from claims
+           
                 var userIdClaim = httpContext.User.FindFirst("sub")?.Value
                     ?? httpContext.User.FindFirst("userId")?.Value;
 
@@ -24,34 +23,25 @@ namespace UserProfileService.Features.DeliveryAddress
                     return Results.Unauthorized();
                 }
 
-                var command = new AddDeliveryAddressCommand(
-                    userId,
-                    request.Alias,
-                    request.Street,
-                    request.City,
-                    request.Governorate,
-                    request.Building,
-                    request.Floor,
-                    request.Apartment,
-                    request.IsPrimary);
+                var query = new GetUserProfileQuery(userId);
 
-                // Validate command
-                var validationResult = await validator.ValidateAsync(command, cancellationToken);
+             
+                var validationResult = await validator.ValidateAsync(query, cancellationToken);
                 if (!validationResult.IsValid)
                 {
                     var errors = validationResult.Errors.Select(e => e.ErrorMessage);
                     return Results.BadRequest(ApiResponse<object>.Failure(errors));
                 }
 
-                var result = await mediator.Send(command, cancellationToken);
+                var result = await mediator.Send(query, cancellationToken);
 
                 return result.IsSuccess
                     ? Results.Ok(result)
                     : Results.BadRequest(result);
             })
             .RequireAuthorization()
-            .WithName("AddDeliveryAddress")
-            .Produces<ApiResponse<DeliveryAddressResponse>>(StatusCodes.Status200OK)
+            .WithName("GetUserProfile")
+            .Produces<ApiResponse<UserProfileDto>>(StatusCodes.Status200OK)
             .Produces<ApiResponse<object>>(StatusCodes.Status400BadRequest)
             .WithTags("Profile");
         }

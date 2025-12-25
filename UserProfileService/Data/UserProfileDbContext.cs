@@ -6,6 +6,9 @@ namespace UserProfileService.Data
 {
     public class UserProfileDbContext : DbContext
     {
+        public UserProfileDbContext()
+        {
+        }
         public UserProfileDbContext(DbContextOptions<UserProfileDbContext> options)
             : base(options)
         {

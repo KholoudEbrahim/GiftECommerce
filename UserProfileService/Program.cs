@@ -1,17 +1,21 @@
 
+using FluentValidation;
 using MassTransit;
+using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using UserProfileService.Application;
 using UserProfileService.Data;
 using UserProfileService.Events;
-using UserProfileService.Features.DeliveryAddress;
-using UserProfileService.Features.GetProfile;
+using UserProfileService.Features.Commands.DeliveryAddress;
+using UserProfileService.Features.Commands.RemoveDeliveryAddress;
+using UserProfileService.Features.Commands.UpdateProfile;
+using UserProfileService.Features.Queries.GetProfile;
+using UserProfileService.Features.Queries.ListDeliveryAddresses;
 using UserProfileService.Features.Shared;
-using UserProfileService.Features.UpdateProfile;
 using UserProfileService.Infrastructure;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -46,6 +50,15 @@ builder.Services.AddDbContext<UserProfileDbContext>(options =>
                 maxRetryDelay: TimeSpan.FromSeconds(30),
                 errorNumbersToAdd: null);
         }));
+
+builder.Services.AddScoped<IValidator<AddDeliveryAddressCommand>, AddDeliveryAddressValidator>();
+builder.Services.AddScoped<IValidator<UpdateProfileCommand>, UpdateProfileValidator>();
+builder.Services.AddScoped<IValidator<RemoveDeliveryAddressCommand>, RemoveDeliveryAddressCommandValidator> ();
+builder.Services.AddScoped<IValidator<GetUserAddressesQuery>, GetUserAddressesQueryValidator>();
+builder.Services.AddScoped<IValidator<GetUserProfileQuery>, GetUserProfileQueryValidator>();
+
+
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
 
 // Authentication
@@ -105,6 +118,9 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 
+
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
@@ -125,6 +141,9 @@ app.MapHealthChecks("/health");
 app.MapGetUserProfileEndpoint();
 app.MapUpdateProfileEndpoint();
 app.MapAddDeliveryAddressEndpoint();
+app.MapGetUserAddressesEndpoint();
+app.MapRemoveDeliveryAddressEndpoint();
+
 
 // Database migration
 using (var scope = app.Services.CreateScope())
