@@ -12,6 +12,7 @@
         public string? Apartment { get; private set; }
         public bool IsPrimary { get; private set; }
 
+        public DateTime? DeletedAt { get; private set; }
 
         // Navigation property
         public UserProfile UserProfile { get; private set; }
@@ -74,5 +75,22 @@
             Apartment = apartment;
             UpdatedAt = DateTime.UtcNow;
         }
+        public void SoftDelete()
+        {
+            IsDeleted = true;
+            DeletedAt = DateTime.UtcNow;
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+      
+        public void Restore()
+        {
+            IsDeleted = false;
+            DeletedAt = null;
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+    
+        public bool IsActive => !IsDeleted;
     }
 }

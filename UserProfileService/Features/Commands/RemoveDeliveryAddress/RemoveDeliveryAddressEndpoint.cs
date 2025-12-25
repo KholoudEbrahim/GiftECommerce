@@ -1,18 +1,20 @@
-﻿using MediatR;
+﻿using FluentValidation;
+using MediatR;
 using UserProfileService.Features.Shared;
 
-namespace UserProfileService.Features.GetProfile
+namespace UserProfileService.Features.Commands.RemoveDeliveryAddress
 {
-    public static class GetUserProfileEndpoint
+    public static class RemoveDeliveryAddressEndpoint
     {
-        public static void MapGetUserProfileEndpoint(this IEndpointRouteBuilder app)
+        public static void MapRemoveDeliveryAddressEndpoint(this IEndpointRouteBuilder app)
         {
-            app.MapGet("api/profile", async (
+            app.MapDelete("api/profile/addresses/{addressId}", async (
                 HttpContext httpContext,
                 IMediator mediator,
+                Guid addressId,
                 CancellationToken cancellationToken) =>
             {
-                // Get user ID from claims (from JWT token)
+             
                 var userIdClaim = httpContext.User.FindFirst("sub")?.Value
                     ?? httpContext.User.FindFirst("userId")?.Value;
 
@@ -21,18 +23,19 @@ namespace UserProfileService.Features.GetProfile
                     return Results.Unauthorized();
                 }
 
-                var query = new GetUserProfileQuery(userId);
-                var result = await mediator.Send(query, cancellationToken);
+                var command = new RemoveDeliveryAddressCommand(userId, addressId);
+
+                var result = await mediator.Send(command, cancellationToken);
 
                 return result.IsSuccess
                     ? Results.Ok(result)
                     : Results.BadRequest(result);
             })
             .RequireAuthorization()
-            .WithName("GetUserProfile")
-            .Produces<ApiResponse<UserProfileDto>>(StatusCodes.Status200OK)
+            .WithName("RemoveDeliveryAddress")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
             .Produces<ApiResponse<object>>(StatusCodes.Status400BadRequest)
-            .WithTags("Profile");
+            .WithTags("Addresses");
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace UserProfileService.Features.UpdateProfile
+﻿namespace UserProfileService.Features.Commands.UpdateProfile
 {
     public class UpdatedProfileResponse
     {

@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace UserProfileService.Features.DeliveryAddress
+namespace UserProfileService.Features.Commands.DeliveryAddress
 {
     public class AddDeliveryAddressValidator : AbstractValidator<AddDeliveryAddressCommand>
     {

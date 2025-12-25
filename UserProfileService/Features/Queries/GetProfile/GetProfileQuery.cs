@@ -5,7 +5,7 @@ using UserProfileService.Services;
 using UserProfileService.Models;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
-namespace UserProfileService.Features.GetProfile
+namespace UserProfileService.Features.Queries.GetProfile
 {
     public record GetUserProfileQuery(Guid UserId) : IRequest<ApiResponse<UserProfileDto>>
     {
@@ -86,7 +86,7 @@ namespace UserProfileService.Features.GetProfile
                 }
             }
 
-            private static DeliveryAddressDto MapToDeliveryAddressDto(Models.DeliveryAddress address)
+            private static DeliveryAddressDto MapToDeliveryAddressDto(DeliveryAddress address)
             {
                 return new DeliveryAddressDto
                 {

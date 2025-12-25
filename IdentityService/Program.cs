@@ -1,6 +1,7 @@
 using FluentValidation;
 using IdentityService.Data;
 using IdentityService.Events;
+using IdentityService.Features.Commands.ChangePassword;
 using IdentityService.Features.Commands.Login;
 using IdentityService.Features.Commands.Logout;
 using IdentityService.Features.Commands.PasswordReset.RequestPasswordReset;
@@ -54,6 +55,7 @@ namespace IdentityService
                 builder.Services.AddScoped<IValidator<ResetPasswordCommand>, ResetPasswordValidator>();
                 builder.Services.AddScoped<IValidator<RequestPasswordResetCommand>, RequestPasswordResetValidator>();
                 builder.Services.AddScoped<IValidator<LogoutCommand>, LogoutValidator>();
+                builder.Services.AddScoped<IValidator<ChangePasswordCommand>, ChangePasswordValidator>();
 
                 // MediatR
                 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
@@ -107,6 +109,7 @@ namespace IdentityService
                 app.MapSignUpEndpoint();
                 app.MapLoginEndpoint();
                 app.MapLogoutEndpoint();
+                app.MapChangePasswordEndpoint();
 
                 app.MapGet("/health", () => Results.Ok(new { status = "Healthy", service = "Identity Service" }));
 

@@ -2,7 +2,7 @@
 using UserProfileService.Data;
 using UserProfileService.Features.Shared;
 
-namespace UserProfileService.Features.DeliveryAddress
+namespace UserProfileService.Features.Commands.DeliveryAddress
 {
     public record AddDeliveryAddressCommand(
        Guid UserId,

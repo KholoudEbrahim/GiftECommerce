@@ -1,4 +1,4 @@
-﻿namespace UserProfileService.Features.GetProfile
+﻿namespace UserProfileService.Features.Queries.GetProfile
 {
     public class UserProfileDto
     {

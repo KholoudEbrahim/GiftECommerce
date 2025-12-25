@@ -56,7 +56,19 @@ services:
     depends_on:
       sqlserver:
         condition: service_healthy
-  
+
+
+  userprofileservice:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=UserProfileDb;User Id=sa;Password=Strong!Passw0rd123;TrustServerCertificate=True
+    command: ["dotnet", "UserProfileService.dll", "--urls", "http://0.0.0.0:8080"]
+    depends_on:
+      - sqlserver
+ 
+
   inventoryservice:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development

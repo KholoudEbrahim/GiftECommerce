@@ -47,5 +47,23 @@ namespace UserProfileService.Data
         {
             await _context.SaveChangesAsync(cancellationToken);
         }
+
+        public async Task<DeliveryAddress?> GetAddressByIdAsync(Guid addressId, CancellationToken cancellationToken = default)
+        {
+            return await _context.DeliveryAddresses
+                .Include(a => a.UserProfile)
+                .FirstOrDefaultAsync(a => a.Id == addressId && !a.IsDeleted, cancellationToken);
+        }
+
+        public async Task<bool> IsAddressOwnedByUserAsync(Guid addressId, Guid userId, CancellationToken cancellationToken = default)
+        {
+            return await _context.DeliveryAddresses
+                .AnyAsync(a =>
+                    a.Id == addressId &&
+                    !a.IsDeleted &&
+                    a.UserProfile != null &&
+                    a.UserProfile.UserId == userId,
+                    cancellationToken);
+        }
     }
 }
