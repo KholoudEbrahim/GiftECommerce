@@ -116,13 +116,37 @@ services:
 
 
   orderservice:
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_HTTP_PORTS=8080
-      - ASPNETCORE_HTTPS_PORTS=8081
-    depends_on:
+   image: ${DOCKER_REGISTRY-}orderservice
+   build:
+    context: .
+    dockerfile: OrderService/Dockerfile
+   container_name: gift-ecommerce-order
+   ports:
+    - "5006:8080" 
+   environment:
+    - ASPNETCORE_ENVIRONMENT=Development
+    - ASPNETCORE_HTTP_PORTS=8080
+    - ASPNETCORE_HTTPS_PORTS=8081
+    - DOTNET_RUNNING_IN_CONTAINER=true
+    - ConnectionStrings__OrderDatabase=Server=sqlserver;Database=OrderDb;User Id=sa;Password=Strong!Passw0rd123;TrustServerCertificate=True
+    - Redis__ConnectionString=redis:6379,abortConnect=false
+    - Redis__InstanceName=OrderService
+    - RabbitMQ__Host=rabbit
+    - RabbitMQ__Username=admin
+    - RabbitMQ__Password=admin123
+    - ExternalServices__CartServiceBaseUrl=http://cartservice:8080
+    - ExternalServices__InventoryServiceBaseUrl=http://inventoryservice:8080
+    - ExternalServices__ProfileServiceBaseUrl=http://userprofileservice:8080
+    - ExternalServices__TimeoutInSeconds=30
+    - Jwt__Authority=http://identityservice:8080
+    - Jwt__Audience=order-service
+    - Jwt__RequireHttpsMetadata=false
+   depends_on:
       - sqlserver
-      - rabbit
+      - redis
+      - cartservice
+      - inventoryservice
+      - userprofileservice
 
   offerservice:
     environment:
