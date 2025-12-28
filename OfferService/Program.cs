@@ -68,11 +68,10 @@ public class Program
         // ==========================================
         // 5. HTTP PIPELINE
         // ==========================================
-        if (app.Environment.IsDevelopment())
-        {
+      
             app.UseSwagger();
             app.UseSwaggerUI();
-        }
+        
 
         app.UseHttpsRedirection();
         app.UseAuthorization();
