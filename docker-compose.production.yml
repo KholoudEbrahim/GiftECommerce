@@ -1,70 +1,43 @@
 version: '3.9'
 
 # Production Docker Swarm Compose for GiftECommerce Microservices
-# Deploy with: docker stack deploy -c docker-compose.production.yml ${STACK_NAME:-gift-shop}
+# Deploy: docker stack deploy -c docker-compose.production.yml gift-shop-team1
 #
-# IMPORTANT: To avoid conflicts with other projects on the same server, set unique prefixes:
-# export STACK_NAME=gift-shop-team1
-# export SERVICE_PREFIX=gift-shop
-# export VOLUME_PREFIX=gift-shop
+# Image tags use static names (update manually when deploying new versions)
 #
-# Server IP: 72.61.102.216
+# Required Environment Variables (no defaults):
+# JWT_SECRET_KEY=your_jwt_secret
+# SMTP_HOST=smtp.gmail.com
+# SMTP_USERNAME=your_email
+# SMTP_PASSWORD=your_smtp_password
+# STRIPE_SECRET_KEY=your_stripe_key
+# STRIPE_PUBLISHABLE_KEY=your_stripe_key
 #
-# Database Connection:
-#   Server: 72.61.102.216
-#   User: sa
-#   Password: g19HBzycmCfePY6MREFm (default, can be overridden via SQL_PASSWORD env var)
+# Optional Environment Variables (have defaults in compose file):
+# GATEWAY_PORT=5000 IDENTITY_PORT=5001 CATEGORY_PORT=5002 INVENTORY_PORT=5003
+# CART_PORT=5005 ORDER_PORT=5006 OFFER_PORT=5007 NOTIFICATION_PORT=5008 PROFILE_PORT=5009
+# SQL_PASSWORD (default: g19HBzycmCfePY6MREFm)
+# REDIS_PASSWORD (default: g19HBzycmCfePY6MREFm)
+# RABBITMQ_PASSWORD (default: g19HBzycmCfePY6MREFm)
 #
-# RabbitMQ Connection:
-#   Host: 72.61.102.216
-#   AMQP Port: 5672
-#   Management UI: http://72.61.102.216:15672
-#   Username: admin
-#   Password: g19HBzycmCfePY6MREFm (default, can be overridden via RABBITMQ_PASSWORD env var)
-#
-# Redis Connection:
-#   Host: 72.61.102.216
-#   Port: 6379
-#   Management UI: http://72.61.102.216:8081
-#   Password: g19HBzycmCfePY6MREFm (default, can be overridden via REDIS_PASSWORD env var)
-#
-# Port Mapping (to avoid conflicts with other microservices projects on the same server):
-# - Gateway:       5000 (or GATEWAY_PORT env var)
-# - Identity:      5001 (or IDENTITY_PORT env var)
-# - Category:      5002 (or CATEGORY_PORT env var)
-# - Inventory:     5003 (or INVENTORY_PORT env var)
-# - Cart:          5005 (or CART_PORT env var)
-# - Order:         5006 (or ORDER_PORT env var)
-# - Offer:         5007 (or OFFER_PORT env var)
-# - Notification: 5008 (or NOTIFICATION_PORT env var)
-# - Profile:       5009 (or PROFILE_PORT env var)
-#
-# To change ports, set environment variables before deployment:
-# export GATEWAY_PORT=6000
-# export IDENTITY_PORT=6001
-# etc.
-#
-# Resource Allocation (Optimized for 8GB RAM server with other services):
-# - Gateway: 1G limit, 512M reservation (main entry point)
-# - Other services: 512M limit, 256M reservation each
-# - Total memory limits: ~5G (leaves ~3G for OS and other services)
-# - CPU limits: Gateway 1.0, others 0.5 each
+# Multi-team deployment: Use different stack names and port ranges (Team 1: 5000-5009, Team 2: 6000-6009, etc.)
+# Services are automatically prefixed with stack name. Internal communication uses simple service names.
 
 networks:
   default_overlay_network:
     external: true
 
 volumes:
-  ${VOLUME_PREFIX:-gift-shop}-uploads:
+  uploads:
     driver: local
 
 services:
   # ============================================
   # API GATEWAY (Main Entry Point)
   # ============================================
-  ${SERVICE_PREFIX:-gift-shop}-gateway:
+  gateway:
     user: root
-    image: giftshop90/giftshop:${BACKEND_ENV:-api_t1}-gateway-${TAG}
+    image: giftshop90/giftshop:gateway
     deploy:
       replicas: 1
       resources:
@@ -91,7 +64,7 @@ services:
     ports:
       - "${GATEWAY_PORT:-5000}:8080"
     volumes:
-      - ${VOLUME_PREFIX:-gift-shop}-uploads:/app/Uploads
+      - uploads:/app/Uploads
     environment:
       - ENVIRONMENT_TYPE=3
       - ASPNETCORE_ENVIRONMENT=Production
@@ -99,16 +72,16 @@ services:
       - TZ=Africa/Cairo
       - DOTNET_RUNNING_IN_CONTAINER=true
     depends_on:
-      - ${SERVICE_PREFIX:-gift-shop}-identityservice
-      - ${SERVICE_PREFIX:-gift-shop}-categoryservice
-      - ${SERVICE_PREFIX:-gift-shop}-cartservice
+      - identityservice
+      - categoryservice
+      - cartservice
 
   # ============================================
   # IDENTITY SERVICE
   # ============================================
-  ${SERVICE_PREFIX:-gift-shop}-identityservice:
+  identityservice:
     user: root
-    image: giftshop90/giftshop:${BACKEND_ENV:-api_t1}-identity-${TAG}
+    image: giftshop90/giftshop:identity
     deploy:
       replicas: 1
       resources:
@@ -156,9 +129,9 @@ services:
   # ============================================
   # CATEGORY SERVICE
   # ============================================
-  ${SERVICE_PREFIX:-gift-shop}-categoryservice:
+  categoryservice:
     user: root
-    image: giftshop90/giftshop:${BACKEND_ENV:-api_t1}-category-${TAG}
+    image: giftshop90/giftshop:category
     deploy:
       replicas: 1
       resources:
@@ -196,16 +169,16 @@ services:
       - RabbitMQ__VirtualHost=${RABBITMQ_VIRTUALHOST:-/}
       - RabbitMQ__Username=${RABBITMQ_USER:-admin}
       - RabbitMQ__Password=${RABBITMQ_PASSWORD:-g19HBzycmCfePY6MREFm}
-      - ExternalServices__CartService__BaseUrl=http://${SERVICE_PREFIX:-gift-shop}-cartservice:8080
-      - ExternalServices__OrderService__BaseUrl=http://${SERVICE_PREFIX:-gift-shop}-orderservice:8080
-      - ExternalServices__InventoryService__BaseUrl=http://${SERVICE_PREFIX:-gift-shop}-inventoryservice:8080
+      - ExternalServices__CartService__BaseUrl=http://cartservice:8080
+      - ExternalServices__OrderService__BaseUrl=http://orderservice:8080
+      - ExternalServices__InventoryService__BaseUrl=http://inventoryservice:8080
 
   # ============================================
   # INVENTORY SERVICE
   # ============================================
-  ${SERVICE_PREFIX:-gift-shop}-inventoryservice:
+  inventoryservice:
     user: root
-    image: giftshop90/giftshop:${BACKEND_ENV:-api_t1}-inventory-${TAG}
+    image: giftshop90/giftshop:inventory
     deploy:
       replicas: 1
       resources:
@@ -242,14 +215,14 @@ services:
       - RabbitMQ__VirtualHost=${RABBITMQ_VIRTUALHOST:-/}
       - RabbitMQ__Username=${RABBITMQ_USER:-admin}
       - RabbitMQ__Password=${RABBITMQ_PASSWORD:-g19HBzycmCfePY6MREFm}
-      - ExternalServices__CartService__BaseUrl=http://${SERVICE_PREFIX:-gift-shop}-cartservice:8080
+      - ExternalServices__CartService__BaseUrl=http://cartservice:8080
 
   # ============================================
   # CART SERVICE
   # ============================================
-  ${SERVICE_PREFIX:-gift-shop}-cartservice:
+  cartservice:
     user: root
-    image: giftshop90/giftshop:${BACKEND_ENV:-api_t1}-cart-${TAG}
+    image: giftshop90/giftshop:cart
     deploy:
       replicas: 1
       resources:
@@ -284,23 +257,23 @@ services:
       - ConnectionStrings__CartDatabase=${SQL_CONNECTION_STRING:-Server=72.61.102.216;Database=CartServiceDb;User Id=${SQL_USER:-sa};Password=${SQL_PASSWORD:-g19HBzycmCfePY6MREFm};TrustServerCertificate=True}
       - Redis__ConnectionString=${REDIS_HOST:-72.61.102.216}:${REDIS_PORT:-6379},password=${REDIS_PASSWORD:-g19HBzycmCfePY6MREFm},abortConnect=false
       - Redis__InstanceName=CartService
-      - ExternalServices__InventoryServiceBaseUrl=http://${SERVICE_PREFIX:-gift-shop}-inventoryservice:8080
-      - ExternalServices__ProfileServiceBaseUrl=http://${SERVICE_PREFIX:-gift-shop}-userprofileservice:8080
+      - ExternalServices__InventoryServiceBaseUrl=http://inventoryservice:8080
+      - ExternalServices__ProfileServiceBaseUrl=http://userprofileservice:8080
       - ExternalServices__TimeoutInSeconds=30
       - ExternalServices__RetryCount=3
-      - Jwt__Authority=http://${SERVICE_PREFIX:-gift-shop}-identityservice:8080
+      - Jwt__Authority=http://identityservice:8080
       - Jwt__Audience=cart-service
       - Jwt__RequireHttpsMetadata=false
     depends_on:
-      - ${SERVICE_PREFIX:-gift-shop}-identityservice
-      - ${SERVICE_PREFIX:-gift-shop}-inventoryservice
+      - identityservice
+      - inventoryservice
 
   # ============================================
   # ORDER SERVICE
   # ============================================
-  ${SERVICE_PREFIX:-gift-shop}-orderservice:
+  orderservice:
     user: root
-    image: giftshop90/giftshop:${BACKEND_ENV:-api_t1}-order-${TAG}
+    image: giftshop90/giftshop:order
     deploy:
       replicas: 1
       resources:
@@ -340,26 +313,26 @@ services:
       - RabbitMQ__VirtualHost=${RABBITMQ_VIRTUALHOST:-/}
       - RabbitMQ__Username=${RABBITMQ_USER:-admin}
       - RabbitMQ__Password=${RABBITMQ_PASSWORD:-g19HBzycmCfePY6MREFm}
-      - ExternalServices__CartServiceBaseUrl=http://${SERVICE_PREFIX:-gift-shop}-cartservice:8080
-      - ExternalServices__InventoryServiceBaseUrl=http://${SERVICE_PREFIX:-gift-shop}-inventoryservice:8080
-      - ExternalServices__ProfileServiceBaseUrl=http://${SERVICE_PREFIX:-gift-shop}-userprofileservice:8080
+      - ExternalServices__CartServiceBaseUrl=http://cartservice:8080
+      - ExternalServices__InventoryServiceBaseUrl=http://inventoryservice:8080
+      - ExternalServices__ProfileServiceBaseUrl=http://userprofileservice:8080
       - ExternalServices__TimeoutInSeconds=30
       - Stripe__SecretKey=${STRIPE_SECRET_KEY}
       - Stripe__PublishableKey=${STRIPE_PUBLISHABLE_KEY}
-      - Jwt__Authority=http://${SERVICE_PREFIX:-gift-shop}-identityservice:8080
+      - Jwt__Authority=http://identityservice:8080
       - Jwt__Audience=order-service
       - Jwt__RequireHttpsMetadata=false
     depends_on:
-      - ${SERVICE_PREFIX:-gift-shop}-cartservice
-      - ${SERVICE_PREFIX:-gift-shop}-inventoryservice
-      - ${SERVICE_PREFIX:-gift-shop}-userprofileservice
+      - cartservice
+      - inventoryservice
+      - userprofileservice
 
   # ============================================
   # USER PROFILE SERVICE
   # ============================================
-  ${SERVICE_PREFIX:-gift-shop}-userprofileservice:
+  userprofileservice:
     user: root
-    image: giftshop90/giftshop:${BACKEND_ENV:-api_t1}-profile-${TAG}
+    image: giftshop90/giftshop:profile
     deploy:
       replicas: 1
       resources:
@@ -397,14 +370,14 @@ services:
       - RabbitMQ__Username=${RABBITMQ_USER:-admin}
       - RabbitMQ__Password=${RABBITMQ_PASSWORD:-g19HBzycmCfePY6MREFm}
     depends_on:
-      - ${SERVICE_PREFIX:-gift-shop}-identityservice
+      - identityservice
 
   # ============================================
   # OFFER SERVICE
   # ============================================
-  ${SERVICE_PREFIX:-gift-shop}-offerservice:
+  offerservice:
     user: root
-    image: giftshop90/giftshop:${BACKEND_ENV:-api_t1}-offer-${TAG}
+    image: giftshop90/giftshop:offer
     deploy:
       replicas: 1
       resources:
@@ -442,9 +415,9 @@ services:
   # ============================================
   # NOTIFICATION SERVICE
   # ============================================
-  ${SERVICE_PREFIX:-gift-shop}-notificationservice:
+  notificationservice:
     user: root
-    image: giftshop90/giftshop:${BACKEND_ENV:-api_t1}-notification-${TAG}
+    image: giftshop90/giftshop:notification
     deploy:
       replicas: 1
       resources:
