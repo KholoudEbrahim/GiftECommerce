@@ -21,6 +21,7 @@
 
 		<!-- Resolve version conflict between Carter and EntityFrameworkCore.Tools -->
 		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.7.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.7.0" />
 
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.2" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.6" />
