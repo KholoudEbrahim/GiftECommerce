@@ -1,0 +1,194 @@
+name: Production Build & Deploy
+
+on:
+  push:
+    branches: [ 'master' ]
+
+concurrency:
+  group: docker-build-production
+  cancel-in-progress: true
+
+env:
+  DOCKER_REGISTRY: giftshop90
+  DOCKER_REPO: giftshop
+  BACKEND_ENV: api_t1
+
+jobs:
+  build-and-push:
+    name: Build & Push All Microservices
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v2
+        with:
+          install: true
+          driver-opts: network=host
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Generate timestamp for tagging (Egypt Time Zone)
+        id: timestamp
+        run: |
+          export TZ=Africa/Cairo
+          echo "tag=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
+
+      - name: Build and Push ApiGateway
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./ApiGateway/Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPO }}:${{ env.BACKEND_ENV }}-gateway-${{ steps.timestamp.outputs.tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and Push IdentityService
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./IdentityService/Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPO }}:${{ env.BACKEND_ENV }}-identity-${{ steps.timestamp.outputs.tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and Push CategoryService
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./CategoryService/Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPO }}:${{ env.BACKEND_ENV }}-category-${{ steps.timestamp.outputs.tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and Push InventoryService
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./InventoryService/Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPO }}:${{ env.BACKEND_ENV }}-inventory-${{ steps.timestamp.outputs.tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and Push CartService
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./CartService/Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPO }}:${{ env.BACKEND_ENV }}-cart-${{ steps.timestamp.outputs.tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and Push OrderService
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./OrderService/Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPO }}:${{ env.BACKEND_ENV }}-order-${{ steps.timestamp.outputs.tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and Push UserProfileService
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./UserProfileService/Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPO }}:${{ env.BACKEND_ENV }}-profile-${{ steps.timestamp.outputs.tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and Push OfferService
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./OfferService/Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPO }}:${{ env.BACKEND_ENV }}-offer-${{ steps.timestamp.outputs.tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and Push NotificationService
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./NotificationService/Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPO }}:${{ env.BACKEND_ENV }}-notification-${{ steps.timestamp.outputs.tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Output deployment tag
+        run: |
+          echo "## 🚀 Deployment Information" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Repository" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPO }}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Tag Format" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "${{ env.BACKEND_ENV }}-{service}-${{ steps.timestamp.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployment Command" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "export BACKEND_ENV=${{ env.BACKEND_ENV }}" >> $GITHUB_STEP_SUMMARY
+          echo "export TAG=${{ steps.timestamp.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "# Optional: Set unique prefixes to avoid conflicts with other projects" >> $GITHUB_STEP_SUMMARY
+          echo "# export STACK_NAME=gift-shop-team1" >> $GITHUB_STEP_SUMMARY
+          echo "# export SERVICE_PREFIX=gift-shop-team1" >> $GITHUB_STEP_SUMMARY
+          echo "# export VOLUME_PREFIX=gift-shop-team1" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "docker stack deploy -c docker-compose.production.yml \${STACK_NAME:-gift-shop}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### All Images Pushed" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPO }}:${{ env.BACKEND_ENV }}-gateway-${{ steps.timestamp.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPO }}:${{ env.BACKEND_ENV }}-identity-${{ steps.timestamp.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPO }}:${{ env.BACKEND_ENV }}-category-${{ steps.timestamp.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPO }}:${{ env.BACKEND_ENV }}-inventory-${{ steps.timestamp.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPO }}:${{ env.BACKEND_ENV }}-cart-${{ steps.timestamp.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPO }}:${{ env.BACKEND_ENV }}-order-${{ steps.timestamp.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPO }}:${{ env.BACKEND_ENV }}-profile-${{ steps.timestamp.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPO }}:${{ env.BACKEND_ENV }}-offer-${{ steps.timestamp.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPO }}:${{ env.BACKEND_ENV }}-notification-${{ steps.timestamp.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** \`${{ steps.timestamp.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** \`${{ env.BACKEND_ENV }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Console Output" >> $GITHUB_STEP_SUMMARY
+          echo "All images pushed to single repository: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPO }}" >> $GITHUB_STEP_SUMMARY
+          echo "Tag format: ${{ env.BACKEND_ENV }}-{service}-${{ steps.timestamp.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "To deploy, run on your server:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "export BACKEND_ENV=${{ env.BACKEND_ENV }}" >> $GITHUB_STEP_SUMMARY
+          echo "export TAG=${{ steps.timestamp.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "docker stack deploy -c docker-compose.production.yml gift-shop" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

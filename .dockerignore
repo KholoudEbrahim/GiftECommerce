@@ -1,28 +1,134 @@
-**/.classpath
-**/.dockerignore
-**/.env
+# .dockerignore for GiftECommerce Microservices
+# This file applies to ALL service builds since they all use context: . (root directory)
+# 
+# IMPORTANT: Service Dockerfiles are NOT ignored and MUST remain accessible:
+# - ApiGateway/Dockerfile
+# - IdentityService/Dockerfile
+# - CategoryService/Dockerfile
+# - CartService/Dockerfile
+# - OrderService/Dockerfile
+# - InventoryService/Dockerfile
+# - OfferService/Dockerfile
+# - NotificationService/Dockerfile
+# - UserProfileService/Dockerfile
+
+# Git
 **/.git
 **/.gitignore
+**/.gitattributes
+
+# Docker
+# Ignore docker-compose files (not needed in images)
+**/docker-compose*
+**/docker-compose.yml
+**/docker-compose.override.yml
+**/docker-compose.production.yml
+**/.dockerignore
+**/.docker
+
+# IMPORTANT: Service Dockerfiles are REQUIRED for builds and MUST NOT be ignored
+# These Dockerfiles are needed:
+# - ApiGateway/Dockerfile
+# - IdentityService/Dockerfile
+# - CategoryService/Dockerfile
+# - CartService/Dockerfile
+# - OrderService/Dockerfile
+# - InventoryService/Dockerfile
+# - OfferService/Dockerfile
+# - NotificationService/Dockerfile
+# - UserProfileService/Dockerfile
+# Do NOT add **/Dockerfile* here as it would break builds
+
+# IDE and Editor files
+**/.vs
+**/.vscode
+**/.idea
+**/.classpath
 **/.project
 **/.settings
 **/.toolstarget
-**/.vs
-**/.vscode
 **/*.*proj.user
-**/*.dbmdl
-**/*.jfm
-**/azds.yaml
+**/*.suo
+**/*.user
+**/*.userosscache
+**/*.sln.docstates
+
+# Build outputs
 **/bin
-**/charts
-**/docker-compose*
-**/Dockerfile*
-**/node_modules
-**/npm-debug.log
 **/obj
+**/out
+**/[Bb]uild
+**/[Bb]uild[Bb]in
+**/[Oo]utput
+
+# Test files
+**/[Tt]est[Rr]esult*/
+**/[Bb]uild[Ll]og.*
+**/*.test.dll
+**/*.test.exe
+**/*.Tests
+**/TestResults
+
+# NuGet
+**/*.nupkg
+**/*.snupkg
+**/packages
+**/.nuget
+**/nuget.exe
+
+# Environment and configuration
+**/.env
+**/.env.local
+**/.env.*.local
+**/appsettings.Development.json
+**/appsettings.*.Development.json
 **/secrets.dev.yaml
 **/values.dev.yaml
-LICENSE
-README.md
+**/azds.yaml
+
+# Logs
+**/*.log
+**/logs
+**/npm-debug.log
+**/yarn-error.log
+
+# Temporary files
+**/*.tmp
+**/*.temp
+**/*.cache
+**/*.swp
+**/*.swo
+**/*~
+**/.DS_Store
+**/Thumbs.db
+
+# Documentation
+**/README.md
+**/LICENSE
+**/CHANGELOG.md
+**/docs
+**/*.md
+
+# HTTP test files (from all services: ApiGateway.http, CartService.http, etc.)
+**/*.http
+
+# Database files
+**/*.db
+**/*.dbmdl
+**/*.mdf
+**/*.ldf
+**/*.sdf
+
+# Other
+**/node_modules
+**/charts
+**/*.jfm
+**/.github
+**/.gitlab-ci.yml
+**/.travis.yml
+**/Jenkinsfile
+
+# Keep some git files for version info (if needed)
 !**/.gitignore
 !.git/HEAD
 !.git/config
