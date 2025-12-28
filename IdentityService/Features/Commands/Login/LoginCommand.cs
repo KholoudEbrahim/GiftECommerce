@@ -1,37 +1,45 @@
 ﻿using FluentValidation;
 using IdentityService.Data;
 using IdentityService.Features.Shared;
+using IdentityService.Middlewares;
 using IdentityService.Services;
 using MediatR;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace IdentityService.Features.Commands.Login;
 
 public record LoginCommand(
       string Email,
-      string Password,
-      string? RequiredRole = null  
+      string Password
   ) : IRequest<RequestResponse<LoginResponseDto>>
 {
-    public class LoginCommandHandler : IRequestHandler<LoginCommand, RequestResponse<LoginResponseDto>>
+    public class LoginCommandHandler :
+        IRequestHandler<LoginCommand, RequestResponse<LoginResponseDto>>
     {
-        private readonly IRepository _Repository;
+        private readonly IRepository _repository;
         private readonly IPasswordService _passwordService;
         private readonly ITokenService _tokenService;
         private readonly IValidator<LoginCommand> _validator;
         private readonly ILogger<LoginCommandHandler> _logger;
+        private readonly IMemoryCache _cache;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public LoginCommandHandler(
-            IRepository Repository,
+            IRepository repository,
             IPasswordService passwordService,
             ITokenService tokenService,
             IValidator<LoginCommand> validator,
-            ILogger<LoginCommandHandler> logger)
+            ILogger<LoginCommandHandler> logger,
+            IMemoryCache cache,
+            IHttpContextAccessor httpContextAccessor)
         {
-            _Repository = Repository;
+            _repository = repository;
             _passwordService = passwordService;
             _tokenService = tokenService;
             _validator = validator;
             _logger = logger;
+            _cache = cache;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<RequestResponse<LoginResponseDto>> Handle(
@@ -47,37 +55,35 @@ public record LoginCommand(
                     return RequestResponse<LoginResponseDto>.Fail(errorMessages, 400);
                 }
 
-                var user = await _Repository.GetByEmailAsync(request.Email);
-                if (user == null)
+                var ipAddress = GetClientIpAddress();
+
+          
+                var failedAttempts = FailedLoginTracker.GetFailedAttempts(ipAddress, _cache);
+                if (failedAttempts >= 10)
                 {
-                    _logger.LogWarning("Login attempt with non-existent email: {Email}", request.Email);
+                    _logger.LogWarning("Blocked login attempt from IP {IpAddress} - too many failed attempts", ipAddress);
+                    return RequestResponse<LoginResponseDto>.Fail(
+                        "Too many failed attempts. Please try again after 15 minutes.",
+                        429);
+                }
+
+                var user = await _repository.GetByEmailAsync(request.Email);
+
+                if (user == null || !_passwordService.VerifyPassword(request.Password, user.PasswordHash))
+                {
+                    
+                    FailedLoginTracker.RecordFailedAttempt(ipAddress, _cache);
+
+                    _logger.LogWarning("Failed login attempt for email: {Email} from IP: {IpAddress}",
+                        request.Email, ipAddress);
                     return RequestResponse<LoginResponseDto>.Fail("Invalid email or password", 401);
                 }
 
-     
-                if (!string.IsNullOrEmpty(request.RequiredRole)
-                    && !string.Equals(user.Role, request.RequiredRole, StringComparison.OrdinalIgnoreCase))
-                {
-                    _logger.LogWarning(
-                        "Role mismatch for {Email}. Required: {RequiredRole}, Actual: {ActualRole}",
-                        request.Email, request.RequiredRole, user.Role);
-                    return RequestResponse<LoginResponseDto>.Fail("Access denied. Insufficient permissions.", 403);
-                }
+                FailedLoginTracker.ClearFailedAttempts(ipAddress, _cache);
 
-                if (!user.IsActive)
-                {
-                    _logger.LogWarning("Login attempt for inactive user: {Email}", request.Email);
-                    return RequestResponse<LoginResponseDto>.Fail("Account is deactivated", 403);
-                }
-
-                if (!_passwordService.VerifyPassword(request.Password, user.PasswordHash))
-                {
-                    _logger.LogWarning("Invalid password attempt for user: {Email}", request.Email);
-                    return RequestResponse<LoginResponseDto>.Fail("Invalid email or password", 401);
-                }
-
+                
                 user.LastLoginAt = DateTime.UtcNow;
-                await _Repository.UpdateAsync(user);
+                await _repository.UpdateAsync(user);
 
                 var jwtToken = _tokenService.GenerateJwtToken(user);
                 var refreshToken = await _tokenService.CreateRefreshTokenAsync(user.Id);
@@ -89,14 +95,13 @@ public record LoginCommand(
                     FirstName = user.FirstName,
                     LastName = user.LastName,
                     Role = user.Role,
-                    Token = jwtToken,
-                    ExpiresAt = DateTime.UtcNow.AddMinutes(15),
+                    Token = jwtToken,  
                     RefreshToken = refreshToken.Token,
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(60),
                     RefreshTokenExpiresAt = refreshToken.ExpiresAt
                 };
 
-                _logger.LogInformation("User logged in successfully: {Email} (Role: {Role})",
-                    user.Email, user.Role);
+                _logger.LogInformation("User logged in successfully: {Email}", user.Email);
 
                 return RequestResponse<LoginResponseDto>.Success(
                     responseDto,
@@ -109,6 +114,25 @@ public record LoginCommand(
                 _logger.LogError(ex, "Error during login for email: {Email}", request.Email);
                 return RequestResponse<LoginResponseDto>.Fail("An error occurred during login", 500);
             }
+        }
+
+        private string GetClientIpAddress()
+        {
+            var context = _httpContextAccessor.HttpContext;
+            if (context == null) return string.Empty;
+
+            
+            if (context.Request.Headers.TryGetValue("X-Forwarded-For", out var forwardedFor))
+            {
+                return forwardedFor.FirstOrDefault()?.Split(',').FirstOrDefault()?.Trim();
+            }
+
+            if (context.Request.Headers.TryGetValue("X-Real-IP", out var realIp))
+            {
+                return realIp.FirstOrDefault();
+            }
+
+            return context.Connection.RemoteIpAddress?.ToString() ?? string.Empty;
         }
     }
 }

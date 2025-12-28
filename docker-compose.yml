@@ -21,8 +21,8 @@ services:
     container_name: gift-ecommerce-identity
     ports:
       - "5001:8080"
-    depends_on:
-      - sqlserver
+    
+     
    
   categoryservice:
     image: ${DOCKER_REGISTRY-}categoryservice
@@ -32,8 +32,7 @@ services:
     container_name: gift-ecommerce-category
     ports:
       - "5002:8080"
-    depends_on:
-      - sqlserver
+    
 
   inventoryservice:
     image: ${DOCKER_REGISTRY-}inventoryservice
@@ -44,7 +43,7 @@ services:
     ports:
       - "5003:8080"
     depends_on:
-      - sqlserver
+      - categoryservice
 
 
   cartservice:
@@ -56,7 +55,7 @@ services:
     ports:
       - "5005:8080"
     depends_on:
-      - sqlserver
+      
       - redis
       - identityservice
       - inventoryservice
@@ -71,7 +70,7 @@ services:
     ports:
       - "5006:8080"
     depends_on:
-      - sqlserver
+      
       - redis
       - cartservice
       - inventoryservice

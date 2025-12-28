@@ -5,7 +5,6 @@ namespace IdentityService.Features.Commands.Login
 {
     public static class LoginEndpoint
     {
-     
         public static void MapLoginEndpoint(this IEndpointRouteBuilder app)
         {
          
@@ -14,26 +13,16 @@ namespace IdentityService.Features.Commands.Login
                 IRequestHandler<LoginCommand, RequestResponse<LoginResponseDto>> handler,
                 CancellationToken cancellationToken) =>
             {
-                // Default user login
-                var result = await handler.Handle(command with { RequiredRole = null }, cancellationToken);
+                var result = await handler.Handle(command, cancellationToken);
                 return HandleLoginResult(result);
             })
-            .WithName("UserLogin")
-            .WithTags("Authentication");
-
-            app.MapPost("/api/admin/auth/login", async (
-                LoginCommand command,
-                IRequestHandler<LoginCommand, RequestResponse<LoginResponseDto>> handler,
-                CancellationToken cancellationToken) =>
-            {
-                // Admin only
-                var result = await handler.Handle(command with { RequiredRole = "Admin" }, cancellationToken);
-                return HandleLoginResult(result);
-            })
-            .WithName("AdminLogin")
-            .WithTags("Authentication", "Admin");
-
-          
+            .WithName("Login")
+            .WithTags("Authentication")
+            .Produces<EndpointResponse<LoginResponseDto>>(200)
+            .Produces<EndpointResponse<LoginResponseDto>>(400)
+            .Produces<EndpointResponse<LoginResponseDto>>(401)
+            .Produces<EndpointResponse<LoginResponseDto>>(429)
+            .Produces<EndpointResponse<LoginResponseDto>>(500);
         }
 
         private static IResult HandleLoginResult(RequestResponse<LoginResponseDto> result)

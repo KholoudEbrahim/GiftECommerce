@@ -1,5 +1,7 @@
+using AspNetCoreRateLimit;
 using FluentValidation;
 using IdentityService.Data;
+using IdentityService.Data.Configurations;
 using IdentityService.Events;
 using IdentityService.Features.Commands.ChangePassword;
 using IdentityService.Features.Commands.Login;
@@ -9,21 +11,11 @@ using IdentityService.Features.Commands.PasswordReset.ResendResetCode;
 using IdentityService.Features.Commands.PasswordReset.VerifyResetCode;
 using IdentityService.Features.Commands.SignUp;
 using IdentityService.Features.Shared;
+using IdentityService.Middlewares;
 using IdentityService.Services;
 using MassTransit;
-using MassTransit.RabbitMqTransport;
-using MediatR;
-using Microsoft.AspNetCore.Http.Json;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using System;
-using System.Text.Json;
-using static IdentityService.Features.Commands.Login.LoginCommand;
-using static IdentityService.Features.Commands.PasswordReset.ResendResetCode.ResetPasswordCommand;
-using static IdentityService.Features.Commands.PasswordReset.VerifyResetCode.VerifyResetCodeCommand;
-using static IdentityService.Features.Commands.SignUp.SignUpCommand;
 
 namespace IdentityService
 {
@@ -37,10 +29,11 @@ namespace IdentityService
             {
                 var builder = WebApplication.CreateBuilder(args);
 
+
                 // Database
                 builder.Services.AddDbContext<IdentityDbContext>(options =>
-                    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection") 
-                        ?? "Server=sqlserver;Database=IdentityDb;User Id=sa;Password=Strong!Passw0rd123;TrustServerCertificate=True"));
+                    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 
                 // Services
                 builder.Services.AddScoped<IRepository, Repository>();
@@ -60,7 +53,7 @@ namespace IdentityService
                 // MediatR
                 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
-                // ? FIXED: RabbitMQ uses "rabbit" not "localhost"
+              
                 builder.Services.AddMassTransit(x =>
                 {
                     x.SetKebabCaseEndpointNameFormatter();
@@ -74,10 +67,13 @@ namespace IdentityService
                     });
                 });
 
-                // ? FIXED: Add Authentication
+          
                 builder.Services.AddAuthentication();
                 builder.Services.AddAuthorization();
 
+
+                builder.Services.AddRateLimiting(builder.Configuration);
+                builder.Services.AddHttpContextAccessor();
                 // Swagger
                 builder.Services.AddEndpointsApiExplorer();
                 builder.Services.AddSwaggerGen(c => c.SwaggerDoc("v1", new OpenApiInfo 
@@ -85,11 +81,15 @@ namespace IdentityService
 
                 var app = builder.Build();
 
-                if (app.Environment.IsDevelopment())
-                {
+
+                app.UseMiddleware<CustomRateLimitResponseMiddleware>();
+                app.UseMiddleware<BruteForceProtectionMiddleware>();
+                app.UseIpRateLimiting();
+
+           
                     app.UseSwagger();
                     app.UseSwaggerUI();
-                }
+              
 
                 app.UseHttpsRedirection();
 
@@ -113,7 +113,7 @@ namespace IdentityService
 
                 app.MapGet("/health", () => Results.Ok(new { status = "Healthy", service = "Identity Service" }));
 
-                // ? FIXED: Authentication middleware
+               
                 app.UseAuthentication();
                 app.UseAuthorization();
 
@@ -123,9 +123,9 @@ namespace IdentityService
             catch (Exception ex)
             {
                 Console.WriteLine($"? ERROR: {ex.Message}");
-                Thread.Sleep(10000);
                 throw;
             }
         }
     }
+
 }

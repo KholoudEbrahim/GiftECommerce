@@ -1,19 +1,7 @@
 
 services:
   # Infrastructure Services
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: gift-ecommerce-sqlserver
-    environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=Strong!Passw0rd123
-    ports:
-      - "1433:1433"
-    healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $${SA_PASSWORD} -C -Q \"SELECT 1\" || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+ 
 
   redis:
     image: redis:7-alpine
@@ -51,7 +39,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - DOTNET_RUNNING_IN_CONTAINER=true
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=IdentityDb;User Id=sa;Password=Strong!Passw0rd123;TrustServerCertificate=True
+      - ConnectionStrings__DefaultConnection=Server=72.61.102.216;Database=IdentityDb;User Id=sa;Password=g19HBzycmCfePY6MREFm;TrustServerCertificate=True;MultipleActiveResultSets=true
     command: ["dotnet", "IdentityService.dll", "--urls", "http://0.0.0.0:8080"]
     depends_on:
       sqlserver:
@@ -63,10 +51,9 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - DOTNET_RUNNING_IN_CONTAINER=true
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=UserProfileDb;User Id=sa;Password=Strong!Passw0rd123;TrustServerCertificate=True
+      - ConnectionStrings__DefaultConnection=Server=72.61.102.216;Database=UserProfileDb;User Id=sa;Password=g19HBzycmCfePY6MREFm;TrustServerCertificate=True;MultipleActiveResultSets=true
     command: ["dotnet", "UserProfileService.dll", "--urls", "http://0.0.0.0:8080"]
-    depends_on:
-      - sqlserver
+
  
 
   inventoryservice:
@@ -74,11 +61,9 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - DOTNET_RUNNING_IN_CONTAINER=true
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=InventoryDb;User Id=sa;Password=Strong!Passw0rd123;TrustServerCertificate=True
+      - ConnectionStrings__DefaultConnection=Server=72.61.102.216;Database=Ecommerce-InventoryDb;User Id=sa;Password=g19HBzycmCfePY6MREFm;TrustServerCertificate=True;MultipleActiveResultSets=true
     command: ["dotnet", "InventoryService.dll", "--urls", "http://0.0.0.0:8080"]
-    depends_on:
-      sqlserver:
-        condition: service_healthy
+
   
   categoryservice:
     environment:
@@ -86,10 +71,10 @@ services:
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
       - DOTNET_RUNNING_IN_CONTAINER=true
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=CatalogDb;User Id=sa;Password=Strong!Passw0rd123;TrustServerCertificate=True
+      - ConnectionStrings__DefaultConnection=Server=72.61.102.216;Database=Ecommerce-CatalogDb;User Id=sa;Password=g19HBzycmCfePY6MREFm;TrustServerCertificate=True;MultipleActiveResultSets=true
     command: ["dotnet", "CategoryService.dll", "--urls", "http://0.0.0.0:8080"]
     depends_on:
-      - sqlserver
+     
       - redis
 
   cartservice:
@@ -97,7 +82,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - DOTNET_RUNNING_IN_CONTAINER=true
-      - ConnectionStrings__CartDatabase=Server=sqlserver;Database=CartServiceDb;User Id=sa;Password=Strong!Passw0rd123;TrustServerCertificate=True
+      - ConnectionStrings__CartDatabase=Server=72.61.102.216;Database=CartServiceDb;User Id=sa;Password=g19HBzycmCfePY6MREFm;TrustServerCertificate=True;MultipleActiveResultSets=true
       - Redis__ConnectionString=redis:6379,abortConnect=false
       - Redis__InstanceName=CartService
       - ExternalServices__InventoryServiceBaseUrl=http://categoryservice:8080
@@ -110,7 +95,7 @@ services:
     ports:
       - "5005:8080"
     depends_on:
-      - sqlserver
+     
       - redis
       - identityservice
 
@@ -128,7 +113,7 @@ services:
     - ASPNETCORE_HTTP_PORTS=8080
     - ASPNETCORE_HTTPS_PORTS=8081
     - DOTNET_RUNNING_IN_CONTAINER=true
-    - ConnectionStrings__OrderDatabase=Server=sqlserver;Database=OrderDb;User Id=sa;Password=Strong!Passw0rd123;TrustServerCertificate=True
+    - ConnectionStrings__OrderDatabase=Server=72.61.102.216;Database=OrderDb;User Id=sa;Password=g19HBzycmCfePY6MREFm;TrustServerCertificate=True;MultipleActiveResultSets=true
     - Redis__ConnectionString=redis:6379,abortConnect=false
     - Redis__InstanceName=OrderService
     - RabbitMQ__Host=rabbit
@@ -142,7 +127,7 @@ services:
     - Jwt__Audience=order-service
     - Jwt__RequireHttpsMetadata=false
    depends_on:
-      - sqlserver
+      
       - redis
       - cartservice
       - inventoryservice
@@ -153,13 +138,13 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
-    depends_on:
-      - sqlserver
+
 
   notificationservice:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
+      - ConnectionStrings__OrderDatabase=Server=72.61.102.216;Database=Ecommerce-OfferDb;User Id=sa;Password=g19HBzycmCfePY6MREFm;TrustServerCertificate=True;MultipleActiveResultSets=true
       - ASPNETCORE_HTTPS_PORTS=8081
     depends_on:
       - rabbit

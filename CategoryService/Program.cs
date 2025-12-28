@@ -112,11 +112,10 @@ public class Program
         await app.IntializeDataBase();
 
         // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
-        {
+     
             app.UseSwagger();
             app.UseSwaggerUI();
-        }
+     
 
         app.UseHttpsRedirection();
 
