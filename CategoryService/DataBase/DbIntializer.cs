@@ -47,7 +47,7 @@ public class DbInitializer : IDbIntializer
                             "CREATE TABLE [__EFMigrationsHistory] ([MigrationId] nvarchar(150) NOT NULL, [ProductVersion] nvarchar(32) NOT NULL, CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId]))");
                         
                         var appliedMigrations = await _context.Database.GetAppliedMigrationsAsync();
-                        var allMigrations = await _context.Database.GetMigrationsAsync();
+                        var allMigrations = _context.Database.GetMigrations();
                         foreach (var migration in allMigrations.Except(appliedMigrations))
                         {
                             try
