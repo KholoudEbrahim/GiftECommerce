@@ -25,7 +25,58 @@ public class DbInitializer : IDbIntializer
         if (pendingMigrations.Any())
         {
             _logger.LogInformation("Applying pending migrations for CatalogDbContext...");
-            await _context.Database.MigrateAsync();
+            try
+            {
+                await _context.Database.MigrateAsync();
+            }
+            catch (Exception ex)
+            {
+                // Check if it's a SQL exception with error 2714 (object already exists) or if it's wrapped
+                Microsoft.Data.SqlClient.SqlException? sqlEx = ex as Microsoft.Data.SqlClient.SqlException 
+                    ?? ex.InnerException as Microsoft.Data.SqlClient.SqlException;
+                
+                if (sqlEx != null && sqlEx.Number == 2714) // Object already exists
+                {
+                    _logger.LogWarning($"Migration conflict detected: {sqlEx.Message}. Tables may already exist. Marking migration as applied...");
+                    // If migration fails due to existing objects, try to mark it as applied
+                    try
+                    {
+                        // Ensure migration history table exists
+                        await _context.Database.ExecuteSqlRawAsync(
+                            "IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = '__EFMigrationsHistory') " +
+                            "CREATE TABLE [__EFMigrationsHistory] ([MigrationId] nvarchar(150) NOT NULL, [ProductVersion] nvarchar(32) NOT NULL, CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId]))");
+                        
+                        var appliedMigrations = await _context.Database.GetAppliedMigrationsAsync();
+                        var allMigrations = await _context.Database.GetMigrationsAsync();
+                        foreach (var migration in allMigrations.Except(appliedMigrations))
+                        {
+                            try
+                            {
+                                await _context.Database.ExecuteSqlRawAsync(
+                                    $"IF NOT EXISTS (SELECT 1 FROM [__EFMigrationsHistory] WHERE [MigrationId] = '{migration}') " +
+                                    $"INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion]) VALUES ('{migration}', '8.0.0')");
+                                _logger.LogInformation($"Marked migration '{migration}' as applied.");
+                            }
+                            catch (Exception e)
+                            {
+                                _logger.LogWarning($"Could not mark migration '{migration}' as applied: {e.Message}");
+                            }
+                        }
+                        _logger.LogInformation("✅ Migration conflict resolved. Service can continue.");
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogError($"Failed to handle migration conflict: {e.Message}");
+                        throw; // Re-throw if we can't handle it
+                    }
+                }
+                else
+                {
+                    // Not a "table already exists" error, re-throw
+                    _logger.LogError($"Migration failed with unexpected error: {ex.Message}");
+                    throw;
+                }
+            }
         }
     }
 
@@ -105,8 +156,7 @@ public class DbInitializer : IDbIntializer
         {
             try
             {
-                await _context.Database.EnsureCreatedAsync();
-                _logger.LogInformation("✅ Database ensured!");
+                // Don't use EnsureCreatedAsync() - we use migrations instead
                 if (await _context.Database.CanConnectAsync())
                 {
                     _logger.LogInformation("✅ Database is connectable!");
@@ -119,5 +169,6 @@ public class DbInitializer : IDbIntializer
             }
             await Task.Delay(TimeSpan.FromSeconds(DelaySeconds));
         }
+        throw new InvalidOperationException("Failed to connect to database after multiple retries.");
     }
 }

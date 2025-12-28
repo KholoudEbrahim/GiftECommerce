@@ -37,7 +37,7 @@ services:
   # ============================================
   gateway:
     user: root
-    image: giftshop90/giftshop:gateway
+    image: giftshop90/giftshop:api_t1-gateway-202512282331
     deploy:
       replicas: 1
       resources:
@@ -81,7 +81,7 @@ services:
   # ============================================
   identityservice:
     user: root
-    image: giftshop90/giftshop:identity
+    image: giftshop90/giftshop:api_t1-identity-202512282331
     deploy:
       replicas: 1
       resources:
@@ -113,7 +113,7 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - TZ=Africa/Cairo
       - DOTNET_RUNNING_IN_CONTAINER=true
-      - ConnectionStrings__DefaultConnection=${SQL_CONNECTION_STRING:-Server=72.61.102.216;Database=IdentityDb;User Id=${SQL_USER:-sa};Password=${SQL_PASSWORD:-g19HBzycmCfePY6MREFm};TrustServerCertificate=True}
+      - ConnectionStrings__DefaultConnection=${SQL_CONNECTION_STRING:-Server=72.61.102.216;Database=IdentityDb;User Id=sa;Password=g19HBzycmCfePY6MREFm;TrustServerCertificate=True}
       - Jwt__SecretKey=${JWT_SECRET_KEY}
       - Jwt__Issuer=${JWT_ISSUER:-gift-shop}
       - Jwt__Audience=${JWT_AUDIENCE:-gift-shop}
@@ -131,7 +131,7 @@ services:
   # ============================================
   categoryservice:
     user: root
-    image: giftshop90/giftshop:category
+    image: giftshop90/giftshop:api_t1-category-202512282331
     deploy:
       replicas: 1
       resources:
@@ -160,11 +160,10 @@ services:
     environment:
       - ENVIRONMENT_TYPE=3
       - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_HTTP_PORTS=8080
-      - ASPNETCORE_HTTPS_PORTS=8081
+      - ASPNETCORE_URLS=http://+:8080
       - TZ=Africa/Cairo
       - DOTNET_RUNNING_IN_CONTAINER=true
-      - ConnectionStrings__DefaultConnection=${SQL_CONNECTION_STRING:-Server=72.61.102.216;Database=Ecommerce-CatalogDb;User Id=${SQL_USER:-sa};Password=${SQL_PASSWORD:-g19HBzycmCfePY6MREFm};TrustServerCertificate=True}
+      - ConnectionStrings__DefaultConnection=${SQL_CONNECTION_STRING:-Server=72.61.102.216;Database=Ecommerce-CatalogDb;User Id=sa;Password=g19HBzycmCfePY6MREFm;TrustServerCertificate=True}
       - RabbitMQ__Host=${RABBITMQ_HOST:-72.61.102.216}
       - RabbitMQ__VirtualHost=${RABBITMQ_VIRTUALHOST:-/}
       - RabbitMQ__Username=${RABBITMQ_USER:-admin}
@@ -178,7 +177,7 @@ services:
   # ============================================
   inventoryservice:
     user: root
-    image: giftshop90/giftshop:inventory
+    image: giftshop90/giftshop:api_t1-inventory-202512282331
     deploy:
       replicas: 1
       resources:
@@ -210,7 +209,7 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - TZ=Africa/Cairo
       - DOTNET_RUNNING_IN_CONTAINER=true
-      - ConnectionStrings__DefaultConnection=${SQL_CONNECTION_STRING:-Server=72.61.102.216;Database=Ecommerce-InventoryDb;User Id=${SQL_USER:-sa};Password=${SQL_PASSWORD:-g19HBzycmCfePY6MREFm};TrustServerCertificate=True}
+      - ConnectionStrings__DefaultConnection=${SQL_CONNECTION_STRING:-Server=72.61.102.216;Database=Ecommerce-InventoryDb;User Id=sa;Password=g19HBzycmCfePY6MREFm;TrustServerCertificate=True}
       - RabbitMQ__Host=${RABBITMQ_HOST:-72.61.102.216}
       - RabbitMQ__VirtualHost=${RABBITMQ_VIRTUALHOST:-/}
       - RabbitMQ__Username=${RABBITMQ_USER:-admin}
@@ -222,7 +221,7 @@ services:
   # ============================================
   cartservice:
     user: root
-    image: giftshop90/giftshop:cart
+    image: giftshop90/giftshop:api_t1-cart-202512282331
     deploy:
       replicas: 1
       resources:
@@ -254,7 +253,7 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - TZ=Africa/Cairo
       - DOTNET_RUNNING_IN_CONTAINER=true
-      - ConnectionStrings__CartDatabase=${SQL_CONNECTION_STRING:-Server=72.61.102.216;Database=CartServiceDb;User Id=${SQL_USER:-sa};Password=${SQL_PASSWORD:-g19HBzycmCfePY6MREFm};TrustServerCertificate=True}
+      - ConnectionStrings__CartDatabase=${SQL_CONNECTION_STRING:-Server=72.61.102.216;Database=CartServiceDb;User Id=sa;Password=g19HBzycmCfePY6MREFm;TrustServerCertificate=True}
       - Redis__ConnectionString=${REDIS_HOST:-72.61.102.216}:${REDIS_PORT:-6379},password=${REDIS_PASSWORD:-g19HBzycmCfePY6MREFm},abortConnect=false
       - Redis__InstanceName=CartService
       - ExternalServices__InventoryServiceBaseUrl=http://inventoryservice:8080
@@ -273,7 +272,7 @@ services:
   # ============================================
   orderservice:
     user: root
-    image: giftshop90/giftshop:order
+    image: giftshop90/giftshop:api_t1-order-202512282331
     deploy:
       replicas: 1
       resources:
@@ -302,11 +301,10 @@ services:
     environment:
       - ENVIRONMENT_TYPE=3
       - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_HTTP_PORTS=8080
-      - ASPNETCORE_HTTPS_PORTS=8081
+      - ASPNETCORE_URLS=http://+:8080
       - TZ=Africa/Cairo
       - DOTNET_RUNNING_IN_CONTAINER=true
-      - ConnectionStrings__OrderDatabase=${SQL_CONNECTION_STRING:-Server=72.61.102.216;Database=OrderDb;User Id=${SQL_USER:-sa};Password=${SQL_PASSWORD:-g19HBzycmCfePY6MREFm};TrustServerCertificate=True}
+      - ConnectionStrings__OrderDatabase=${SQL_CONNECTION_STRING:-Server=72.61.102.216;Database=OrderDb;User Id=sa;Password=g19HBzycmCfePY6MREFm;TrustServerCertificate=True}
       - Redis__ConnectionString=${REDIS_HOST:-72.61.102.216}:${REDIS_PORT:-6379},password=${REDIS_PASSWORD:-g19HBzycmCfePY6MREFm},abortConnect=false
       - Redis__InstanceName=OrderService
       - RabbitMQ__Host=${RABBITMQ_HOST:-72.61.102.216}
@@ -332,7 +330,7 @@ services:
   # ============================================
   userprofileservice:
     user: root
-    image: giftshop90/giftshop:profile
+    image: giftshop90/giftshop:api_t1-profile-202512282331
     deploy:
       replicas: 1
       resources:
@@ -364,7 +362,7 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - TZ=Africa/Cairo
       - DOTNET_RUNNING_IN_CONTAINER=true
-      - ConnectionStrings__DefaultConnection=${SQL_CONNECTION_STRING:-Server=72.61.102.216;Database=UserProfileDb;User Id=${SQL_USER:-sa};Password=${SQL_PASSWORD:-g19HBzycmCfePY6MREFm};TrustServerCertificate=True}
+      - ConnectionStrings__DefaultConnection=${SQL_CONNECTION_STRING:-Server=72.61.102.216;Database=UserProfileDb;User Id=sa;Password=g19HBzycmCfePY6MREFm;TrustServerCertificate=True}
       - RabbitMQ__Host=${RABBITMQ_HOST:-72.61.102.216}
       - RabbitMQ__VirtualHost=${RABBITMQ_VIRTUALHOST:-/}
       - RabbitMQ__Username=${RABBITMQ_USER:-admin}
@@ -377,7 +375,7 @@ services:
   # ============================================
   offerservice:
     user: root
-    image: giftshop90/giftshop:offer
+    image: giftshop90/giftshop:api_t1-offer-202512282331
     deploy:
       replicas: 1
       resources:
@@ -406,18 +404,17 @@ services:
     environment:
       - ENVIRONMENT_TYPE=3
       - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_HTTP_PORTS=8080
-      - ASPNETCORE_HTTPS_PORTS=8081
+      - ASPNETCORE_URLS=http://+:8080
       - TZ=Africa/Cairo
       - DOTNET_RUNNING_IN_CONTAINER=true
-      - ConnectionStrings__DefaultConnection=${SQL_CONNECTION_STRING:-Server=72.61.102.216;Database=Ecommerce-OfferDb;User Id=${SQL_USER:-sa};Password=${SQL_PASSWORD:-g19HBzycmCfePY6MREFm};TrustServerCertificate=True}
+      - ConnectionStrings__DefaultConnection=${SQL_CONNECTION_STRING:-Server=72.61.102.216;Database=Ecommerce-OfferDb;User Id=sa;Password=g19HBzycmCfePY6MREFm;TrustServerCertificate=True}
 
   # ============================================
   # NOTIFICATION SERVICE
   # ============================================
   notificationservice:
     user: root
-    image: giftshop90/giftshop:notification
+    image: giftshop90/giftshop:api_t1-notification-202512282331
     deploy:
       replicas: 1
       resources:
@@ -446,8 +443,7 @@ services:
     environment:
       - ENVIRONMENT_TYPE=3
       - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_HTTP_PORTS=8080
-      - ASPNETCORE_HTTPS_PORTS=8081
+      - ASPNETCORE_URLS=http://+:8080
       - TZ=Africa/Cairo
       - DOTNET_RUNNING_IN_CONTAINER=true
       - RabbitMQ__Host=${RABBITMQ_HOST:-72.61.102.216}
