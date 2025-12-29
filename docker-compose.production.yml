@@ -50,7 +50,7 @@ services:
       restart_policy:
         condition: any
         delay: 60s
-        max_attempts: 6
+        max_attempts: 2
       update_config:
         parallelism: 1
         delay: 10s
@@ -94,7 +94,7 @@ services:
       restart_policy:
         condition: any
         delay: 60s
-        max_attempts: 6
+        max_attempts: 2
       update_config:
         parallelism: 1
         delay: 10s
@@ -121,17 +121,17 @@ services:
       - Email__Smtp__Port=${SMTP_PORT:-587}
       - Email__Smtp__Username=${SMTP_USERNAME}
       - Email__Smtp__Password=${SMTP_PASSWORD}
-      - RabbitMQ__Host=${RABBITMQ_HOST:-72.61.102.216}
-      - RabbitMQ__VirtualHost=${RABBITMQ_VIRTUALHOST:-/}
-      - RabbitMQ__Username=${RABBITMQ_USER:-admin}
-      - RabbitMQ__Password=${RABBITMQ_PASSWORD:-g19HBzycmCfePY6MREFm}
+      - RabbitMQ__Host=72.61.102.216
+      - RabbitMQ__VirtualHost=/
+      - RabbitMQ__Username=admin
+      - RabbitMQ__Password=g19HBzycmCfePY6MREFm
 
   # ============================================
   # CATEGORY SERVICE
   # ============================================
   categoryservice:
     user: root
-    image: giftshop90/giftshop:api_t1-category-202512282331
+    image: giftshop90/giftshop:api_t1-category-202512290028
     deploy:
       replicas: 1
       resources:
@@ -144,7 +144,7 @@ services:
       restart_policy:
         condition: any
         delay: 60s
-        max_attempts: 6
+        max_attempts: 2
       update_config:
         parallelism: 1
         delay: 10s
@@ -164,10 +164,10 @@ services:
       - TZ=Africa/Cairo
       - DOTNET_RUNNING_IN_CONTAINER=true
       - ConnectionStrings__DefaultConnection=${SQL_CONNECTION_STRING:-Server=72.61.102.216;Database=Ecommerce-CatalogDb;User Id=sa;Password=g19HBzycmCfePY6MREFm;TrustServerCertificate=True}
-      - RabbitMQ__Host=${RABBITMQ_HOST:-72.61.102.216}
-      - RabbitMQ__VirtualHost=${RABBITMQ_VIRTUALHOST:-/}
-      - RabbitMQ__Username=${RABBITMQ_USER:-admin}
-      - RabbitMQ__Password=${RABBITMQ_PASSWORD:-g19HBzycmCfePY6MREFm}
+      - RabbitMQ__Host=72.61.102.216
+      - RabbitMQ__VirtualHost=/
+      - RabbitMQ__Username=admin
+      - RabbitMQ__Password=g19HBzycmCfePY6MREFm
       - ExternalServices__CartService__BaseUrl=http://cartservice:8080
       - ExternalServices__OrderService__BaseUrl=http://orderservice:8080
       - ExternalServices__InventoryService__BaseUrl=http://inventoryservice:8080
@@ -190,7 +190,7 @@ services:
       restart_policy:
         condition: any
         delay: 60s
-        max_attempts: 6
+        max_attempts: 2
       update_config:
         parallelism: 1
         delay: 10s
@@ -210,10 +210,10 @@ services:
       - TZ=Africa/Cairo
       - DOTNET_RUNNING_IN_CONTAINER=true
       - ConnectionStrings__DefaultConnection=${SQL_CONNECTION_STRING:-Server=72.61.102.216;Database=Ecommerce-InventoryDb;User Id=sa;Password=g19HBzycmCfePY6MREFm;TrustServerCertificate=True}
-      - RabbitMQ__Host=${RABBITMQ_HOST:-72.61.102.216}
-      - RabbitMQ__VirtualHost=${RABBITMQ_VIRTUALHOST:-/}
-      - RabbitMQ__Username=${RABBITMQ_USER:-admin}
-      - RabbitMQ__Password=${RABBITMQ_PASSWORD:-g19HBzycmCfePY6MREFm}
+      - RabbitMQ__Host=72.61.102.216
+      - RabbitMQ__VirtualHost=/
+      - RabbitMQ__Username=admin
+      - RabbitMQ__Password=g19HBzycmCfePY6MREFm
       - ExternalServices__CartService__BaseUrl=http://cartservice:8080
 
   # ============================================
@@ -234,7 +234,7 @@ services:
       restart_policy:
         condition: any
         delay: 60s
-        max_attempts: 6
+        max_attempts: 2
       update_config:
         parallelism: 1
         delay: 10s
@@ -285,7 +285,7 @@ services:
       restart_policy:
         condition: any
         delay: 60s
-        max_attempts: 6
+        max_attempts: 2
       update_config:
         parallelism: 1
         delay: 10s
@@ -307,10 +307,10 @@ services:
       - ConnectionStrings__OrderDatabase=${SQL_CONNECTION_STRING:-Server=72.61.102.216;Database=OrderDb;User Id=sa;Password=g19HBzycmCfePY6MREFm;TrustServerCertificate=True}
       - Redis__ConnectionString=${REDIS_HOST:-72.61.102.216}:${REDIS_PORT:-6379},password=${REDIS_PASSWORD:-g19HBzycmCfePY6MREFm},abortConnect=false
       - Redis__InstanceName=OrderService
-      - RabbitMQ__Host=${RABBITMQ_HOST:-72.61.102.216}
-      - RabbitMQ__VirtualHost=${RABBITMQ_VIRTUALHOST:-/}
-      - RabbitMQ__Username=${RABBITMQ_USER:-admin}
-      - RabbitMQ__Password=${RABBITMQ_PASSWORD:-g19HBzycmCfePY6MREFm}
+      - RabbitMQ__Host=72.61.102.216
+      - RabbitMQ__VirtualHost=/
+      - RabbitMQ__Username=admin
+      - RabbitMQ__Password=g19HBzycmCfePY6MREFm
       - ExternalServices__CartServiceBaseUrl=http://cartservice:8080
       - ExternalServices__InventoryServiceBaseUrl=http://inventoryservice:8080
       - ExternalServices__ProfileServiceBaseUrl=http://userprofileservice:8080
@@ -343,7 +343,7 @@ services:
       restart_policy:
         condition: any
         delay: 60s
-        max_attempts: 6
+        max_attempts: 2
       update_config:
         parallelism: 1
         delay: 10s
@@ -362,11 +362,14 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - TZ=Africa/Cairo
       - DOTNET_RUNNING_IN_CONTAINER=true
-      - ConnectionStrings__DefaultConnection=${SQL_CONNECTION_STRING:-Server=72.61.102.216;Database=UserProfileDb;User Id=sa;Password=g19HBzycmCfePY6MREFm;TrustServerCertificate=True}
-      - RabbitMQ__Host=${RABBITMQ_HOST:-72.61.102.216}
-      - RabbitMQ__VirtualHost=${RABBITMQ_VIRTUALHOST:-/}
-      - RabbitMQ__Username=${RABBITMQ_USER:-admin}
-      - RabbitMQ__Password=${RABBITMQ_PASSWORD:-g19HBzycmCfePY6MREFm}
+      - ConnectionStrings__DefaultConnection=Server=72.61.102.216;Database=UserProfileDb;User Id=sa;Password=g19HBzycmCfePY6MREFm;TrustServerCertificate=True
+      - RabbitMQ__Host=72.61.102.216
+      - RabbitMQ__VirtualHost=/
+      - RabbitMQ__Username=admin
+      - RabbitMQ__Password=g19HBzycmCfePY6MREFm
+      - Jwt__Key=g19HBzycmCfePY6MREFmJWTSecretKey2024Production
+      - Jwt__Issuer=gift-shop
+      - Jwt__Audience=gift-shop
     depends_on:
       - identityservice
 
@@ -388,7 +391,7 @@ services:
       restart_policy:
         condition: any
         delay: 60s
-        max_attempts: 6
+        max_attempts: 2
       update_config:
         parallelism: 1
         delay: 10s
@@ -407,7 +410,11 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - TZ=Africa/Cairo
       - DOTNET_RUNNING_IN_CONTAINER=true
-      - ConnectionStrings__DefaultConnection=${SQL_CONNECTION_STRING:-Server=72.61.102.216;Database=Ecommerce-OfferDb;User Id=sa;Password=g19HBzycmCfePY6MREFm;TrustServerCertificate=True}
+      - ConnectionStrings__DefaultConnection=Server=72.61.102.216;Database=Ecommerce-OfferDb;User Id=sa;Password=g19HBzycmCfePY6MREFm;TrustServerCertificate=True
+      - RabbitMQ__Host=72.61.102.216
+      - RabbitMQ__VirtualHost=/
+      - RabbitMQ__Username=admin
+      - RabbitMQ__Password=g19HBzycmCfePY6MREFm
 
   # ============================================
   # NOTIFICATION SERVICE
@@ -427,7 +434,7 @@ services:
       restart_policy:
         condition: any
         delay: 60s
-        max_attempts: 6
+        max_attempts: 2
       update_config:
         parallelism: 1
         delay: 10s
@@ -446,7 +453,7 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - TZ=Africa/Cairo
       - DOTNET_RUNNING_IN_CONTAINER=true
-      - RabbitMQ__Host=${RABBITMQ_HOST:-72.61.102.216}
-      - RabbitMQ__VirtualHost=${RABBITMQ_VIRTUALHOST:-/}
-      - RabbitMQ__Username=${RABBITMQ_USER:-admin}
-      - RabbitMQ__Password=${RABBITMQ_PASSWORD:-g19HBzycmCfePY6MREFm}
+      - RabbitMQ__Host=72.61.102.216
+      - RabbitMQ__VirtualHost=/
+      - RabbitMQ__Username=admin
+      - RabbitMQ__Password=g19HBzycmCfePY6MREFm
