@@ -71,9 +71,8 @@ namespace IdentityService
                 builder.Services.AddAuthentication();
                 builder.Services.AddAuthorization();
 
-
-                builder.Services.AddRateLimiting(builder.Configuration);
                 builder.Services.AddHttpContextAccessor();
+                builder.Services.AddRateLimiting(builder.Configuration);
                 // Swagger
                 builder.Services.AddEndpointsApiExplorer();
                 builder.Services.AddSwaggerGen(c => c.SwaggerDoc("v1", new OpenApiInfo 
@@ -82,9 +81,9 @@ namespace IdentityService
                 var app = builder.Build();
 
 
+                app.UseIpRateLimiting();
                 app.UseMiddleware<CustomRateLimitResponseMiddleware>();
                 app.UseMiddleware<BruteForceProtectionMiddleware>();
-                app.UseIpRateLimiting();
 
            
                     app.UseSwagger();
@@ -102,6 +101,10 @@ namespace IdentityService
                 }
                 catch { }
 
+
+                app.UseAuthentication();
+                app.UseAuthorization();
+
                 // Endpoints
                 app.MapRequestPasswordResetEndpoint();
                 app.MapPasswordResetEndpoints();
@@ -114,8 +117,7 @@ namespace IdentityService
                 app.MapGet("/health", () => Results.Ok(new { status = "Healthy", service = "Identity Service" }));
 
                
-                app.UseAuthentication();
-                app.UseAuthorization();
+               
 
                 Console.WriteLine("? Starting on port 8080...");
                 app.Run();
