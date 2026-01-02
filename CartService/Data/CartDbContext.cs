@@ -26,7 +26,7 @@ namespace CartService.Data
 
           
             modelBuilder.Entity<Cart>()
-                .HasQueryFilter(c => c.Status == CartStatus.Active);
+               .HasQueryFilter(c => !c.IsDeleted && c.IsActive);
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

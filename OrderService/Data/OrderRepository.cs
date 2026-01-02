@@ -149,7 +149,17 @@ namespace OrderService.Data
             return await _context.Ratings
                 .AnyAsync(r => r.UserId == userId && r.OrderItemId == orderItemId, cancellationToken);
         }
-
+        public async Task<OrderItem?> GetOrderItemWithOrderAsync(int orderItemId, CancellationToken cancellationToken = default)
+        {
+            return await _context.OrderItems
+                .Include(i => i.Order)
+                .FirstOrDefaultAsync(i => i.Id == orderItemId, cancellationToken);
+        }
+        public async Task UpdateOrderItemAsync(OrderItem orderItem, CancellationToken cancellationToken = default)
+        {
+            _context.OrderItems.Update(orderItem);
+            await Task.CompletedTask;
+        }
         public async Task<IEnumerable<Rating>> GetProductRatingsAsync(int productId, CancellationToken cancellationToken = default)
         {
             return await _context.Ratings

@@ -1,13 +1,15 @@
-﻿namespace OrderService.Features.Queries.GetOrderById
+﻿using OrderService.Models.enums;
+
+namespace OrderService.Features.Queries.GetOrderById
 {
     public record OrderDetailsDto
     {
         public int OrderId { get; init; }
         public string OrderNumber { get; init; } = default!;
         public Guid UserId { get; init; }
-        public Models.enums.OrderStatus Status { get; init; }
-        public Models.enums.PaymentMethod PaymentMethod { get; init; }
-        public Models.enums.PaymentStatus PaymentStatus { get; init; }
+        public OrderStatus Status { get; init; }
+        public PaymentMethod PaymentMethod { get; init; }
+        public PaymentStatus PaymentStatus { get; init; }
         public decimal SubTotal { get; init; }
         public decimal DeliveryFee { get; init; }
         public decimal Discount { get; init; }

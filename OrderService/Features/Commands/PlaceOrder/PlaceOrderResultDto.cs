@@ -17,6 +17,7 @@ namespace OrderService.Features.Commands.PlaceOrder
         public Guid DeliveryAddressId { get; init; }
         public DateTime CreatedAt { get; init; }
         public List<OrderItemResultDto> Items { get; init; } = new();
+        public string? PaymentInstructions { get; init; }
     }
 
 }

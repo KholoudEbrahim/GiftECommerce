@@ -5,9 +5,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using OrderService.Data;
+using OrderService.Events.Publisher;
 using OrderService.Features.Commands.PlaceOrder;
 using OrderService.Features.Commands.RateOrderItem;
 using OrderService.Features.Commands.ReOrder;
+using OrderService.Features.Commands.VerifyCashPayment;
 using OrderService.Features.Queries.GetOrderById;
 using OrderService.Features.Queries.GetOrders;
 using OrderService.Features.Queries.TrackOrder;
@@ -18,6 +20,7 @@ using OrderService.Services;
 using OrderService.Services.Cart;
 using OrderService.Services.Inventory;
 using OrderService.Services.Payment;
+using OrderService.Services.TemporaryOrder;
 using OrderService.Services.UserProfile;
 using Stripe;
 using System.Text.Json.Serialization;
@@ -215,6 +218,7 @@ namespace OrderService.Extensions
             services.AddScoped<IValidator<GetOrderByIdQuery>, GetOrderByIdQueryValidator>();
             services.AddScoped<IValidator<GetOrdersQuery>, GetOrdersQueryValidator>();
             services.AddScoped<IValidator<TrackOrderQuery>, TrackOrderQueryValidator>();
+            services.AddScoped<IValidator<VerifyCashPaymentCommand>, VerifyCashPaymentCommandValidator>();
 
             return services;
         }
@@ -258,6 +262,8 @@ namespace OrderService.Extensions
             services.AddScoped<IPaymentService, StripePaymentService>();
             services.AddScoped<ITrackingService, TrackingService>();
             services.AddScoped<ITrackingStrategyFactory, TrackingStrategyFactory>();
+            services.AddScoped<ITemporaryOrderService, TemporaryOrderService>();
+            services.AddScoped<IEventPublisher, EventPublisher>();
 
             // Register tracking strategies
             services.AddScoped<PendingTrackingStrategy>();

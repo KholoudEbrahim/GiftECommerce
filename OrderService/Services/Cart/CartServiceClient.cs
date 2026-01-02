@@ -55,7 +55,11 @@ namespace OrderService.Services.Cart
         {
             try
             {
-                var response = await _httpClient.GetAsync($"/api/cart/user/{userId}/active", cancellationToken);
+                var request = new HttpRequestMessage(HttpMethod.Get, "/api/cart");
+                request.Headers.Add("Authorization", $"Bearer {GetUserToken()}");
+                request.Headers.Add("X-User-Id", userId.ToString());
+
+                var response = await _httpClient.SendAsync(request, cancellationToken);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -67,13 +71,13 @@ namespace OrderService.Services.Cart
                     return apiResponse?.Data;
                 }
 
-                _logger.LogWarning("Failed to get active cart for user {UserId}. Status: {StatusCode}",
+                _logger.LogWarning("Failed to get cart for user {UserId}. Status: {StatusCode}",
                     userId, response.StatusCode);
                 return null;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting active cart for user {UserId}", userId);
+                _logger.LogError(ex, "Error getting cart for user {UserId}", userId);
                 return null;
             }
         }
@@ -108,6 +112,13 @@ namespace OrderService.Services.Cart
                 _logger.LogError(ex, "Error validating cart {CartId}", cartId);
                 return false;
             }
+
+
+        }
+        private string GetUserToken()
+        {
+           
+            return "user-token";
         }
     }
 }

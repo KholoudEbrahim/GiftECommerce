@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using OrderService.Features.Commands.PlaceOrder;
 using OrderService.Features.Commands.RateOrderItem;
 using OrderService.Features.Commands.ReOrder;
+using OrderService.Features.Commands.VerifyCashPayment;
 using OrderService.Features.Endpoints.DTOs;
 using OrderService.Features.Queries.GetOrderById;
 using OrderService.Features.Queries.GetOrders;
@@ -19,7 +20,7 @@ namespace OrderService.Features.Endpoints
                 .WithTags("Orders")
                 .RequireAuthorization();
 
-        
+
             orderEndpoints.MapPost("/", async (
                 [FromServices] IMediator mediator,
                 [FromServices] IUserContext userContext,
@@ -67,7 +68,7 @@ namespace OrderService.Features.Endpoints
             .Produces<ApiResponse<GetOrdersResultDto>>()
             .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized);
 
-    
+
             orderEndpoints.MapGet("/{orderNumber}", async (
                 [FromServices] IMediator mediator,
                 [FromServices] IUserContext userContext,
@@ -88,7 +89,7 @@ namespace OrderService.Features.Endpoints
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized);
 
-     
+
             orderEndpoints.MapGet("/{orderNumber}/track", async (
                 [FromServices] IMediator mediator,
                 [FromServices] IUserContext userContext,
@@ -109,7 +110,7 @@ namespace OrderService.Features.Endpoints
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized);
 
-     
+
             orderEndpoints.MapPost("/{orderNumber}/reorder", async (
                 [FromServices] IMediator mediator,
                 [FromServices] IUserContext userContext,
@@ -117,7 +118,7 @@ namespace OrderService.Features.Endpoints
                 CancellationToken cancellationToken,
                 string orderNumber) =>
             {
-         
+
                 var command = new ReOrderCommand(
                     UserId: userContext.UserId,
                     OrderNumber: orderNumber,
@@ -134,7 +135,7 @@ namespace OrderService.Features.Endpoints
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized);
 
-          
+
             orderEndpoints.MapPost("/items/{orderItemId}/rate", async (
                 [FromServices] IMediator mediator,
                 [FromServices] IUserContext userContext,
@@ -157,6 +158,34 @@ namespace OrderService.Features.Endpoints
             .Produces<ApiResponse<RateOrderItemResultDto>>()
             .Produces<ApiErrorResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized);
+
+
+
+            orderEndpoints.MapPost("/{orderNumber}/verify-cash-payment", async (
+               [FromServices] IMediator mediator,
+                    [FromServices] IUserContext userContext,
+                CancellationToken cancellationToken,
+                string orderNumber,
+                  [FromBody] VerifyCashPaymentRequest? request = null) =>
+            {
+                var command = new VerifyCashPaymentCommand(
+                    OrderNumber: orderNumber,
+                    VerifiedBy: userContext.UserId,
+                    TransactionId: request?.TransactionId
+                );
+
+                var result = await mediator.Send(command, cancellationToken);
+
+                return Results.Ok(ApiResponse<VerifyCashPaymentResultDto>.SuccessResponse(result));
+            })
+              .WithName("VerifyCashPayment")
+                .RequireAuthorization(policy => policy.RequireRole("Admin", "DeliveryHero"))
+                   .Produces<ApiResponse<VerifyCashPaymentResultDto>>()
+                   .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
+                   .Produces<ApiErrorResponse>(StatusCodes.Status403Forbidden);
         }
+             public record VerifyCashPaymentRequest(string? TransactionId);
+
     }
 }
+

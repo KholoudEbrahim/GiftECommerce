@@ -56,22 +56,27 @@ namespace OrderService
 
             app.UseExceptionHandler();
 
-            // Custom middleware
+        
+            app.UseCors("AllowFrontend");
+        
+            
+
+
+            app.UseHttpsRedirection();
             app.UseMiddleware<CorrelationIdMiddleware>();
             app.UseMiddleware<RequestLoggingMiddleware>();
 
-            // Standard middleware
-            app.UseHttpsRedirection();
-            app.UseCors("AllowFrontend");
+            app.UseExceptionHandler(); 
             app.UseAuthentication();
             app.UseAuthorization();
 
             // Map endpoints
             app.MapOrderEndpoints();
             app.MapHealthChecks("/health");
+            app.MapGroup("/api/webhooks")
+              .MapStripeWebhook();
 
 
-            
 
             await app.RunAsync();
         }

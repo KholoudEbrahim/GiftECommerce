@@ -29,14 +29,16 @@ namespace OrderService.Data
         // Rating operations
         Task AddRatingAsync(Rating rating, CancellationToken cancellationToken = default);
         Task<bool> HasUserRatedOrderItemAsync(Guid userId, int orderItemId, CancellationToken cancellationToken = default);
+        Task<OrderItem?> GetOrderItemWithOrderAsync(int orderItemId, CancellationToken cancellationToken = default);
         Task<IEnumerable<Rating>> GetProductRatingsAsync(int productId, CancellationToken cancellationToken = default);
+        Task UpdateOrderItemAsync(OrderItem orderItem, CancellationToken cancellationToken = default);
 
         // Statistics
         Task<int> CountUserOrdersAsync(Guid userId, CancellationToken cancellationToken = default);
         Task<decimal> GetUserTotalSpentAsync(Guid userId, CancellationToken cancellationToken = default);
 
         Task<bool> SaveChangesAsync(CancellationToken cancellationToken = default);
-        Task<int> SaveChangesWithIncludesAsync(CancellationToken cancellationToken = default); // Added
+        Task<int> SaveChangesWithIncludesAsync(CancellationToken cancellationToken = default); 
 
         // Batch operations
         Task AddRangeAsync(IEnumerable<Order> orders, CancellationToken cancellationToken = default);

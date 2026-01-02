@@ -16,8 +16,14 @@ namespace CartService.Models
         public decimal Total => SubTotal + DeliveryFee;
 
         public Guid? DeliveryAddressId { get; private set; }
-
-
+        public AddressType? DeliveryAddressType { get; private set; }
+        public bool IsGift { get; private set; }
+        public string? GiftMessage { get; private set; }
+        public string? RecipientName { get; private set; }
+        public string? RecipientPhone { get; private set; }
+        public DateTime? GiftDeliveryDate { get; private set; }
+        public bool GiftWrapRequested { get; private set; }
+        public decimal GiftWrapFee { get; private set; } = 25;
         private Cart() { }
 
         public static Cart CreateForUser(Guid userId)
@@ -88,14 +94,15 @@ namespace CartService.Models
             }
         }
 
-        public void SetDeliveryAddress(Guid addressId)
+        public void SetDeliveryAddress(Guid addressId, AddressType addressType = AddressType.Home)
         {
             DeliveryAddressId = addressId;
+            DeliveryAddressType = addressType;
             DeliveryFee = CalculateDeliveryFee();
             RecalculateTotals();
         }
 
-    
+
 
         public void Checkout()
         {
@@ -134,6 +141,51 @@ namespace CartService.Models
            
             return SubTotal > 1000 ? 0 : 50; 
         }
+        public void MarkAsGift(
+             string recipientName,
+               string recipientPhone,
+               string? giftMessage = null,
+               DateTime? deliveryDate = null,
+               bool giftWrap = false)
+        {
+            if (string.IsNullOrWhiteSpace(recipientName))
+                throw new ArgumentException("Recipient name is required", nameof(recipientName));
+
+            if (string.IsNullOrWhiteSpace(recipientPhone))
+                throw new ArgumentException("Recipient phone is required", nameof(recipientPhone));
+
+            IsGift = true;
+            RecipientName = recipientName;
+            RecipientPhone = recipientPhone;
+            GiftMessage = giftMessage;
+            GiftDeliveryDate = deliveryDate;
+            GiftWrapRequested = giftWrap;
+
+            if (giftWrap)
+            {
+                GiftWrapFee = 25; 
+            }
+
+            RecalculateTotals();
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void RemoveGiftDetails()
+        {
+            IsGift = false;
+            GiftMessage = null;
+            RecipientName = null;
+            RecipientPhone = null;
+            GiftDeliveryDate = null;
+            GiftWrapRequested = false;
+            GiftWrapFee = 0;
+
+            RecalculateTotals();
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+      
     }
 }
+
 

@@ -49,10 +49,10 @@ namespace CartService.Data
             await _context.Carts.AddAsync(cart, cancellationToken);
         }
 
-        public async Task UpdateAsync(Cart cart, CancellationToken cancellationToken = default)
+        public Task UpdateAsync(Cart cart, CancellationToken cancellationToken = default)
         {
-            _context.Carts.Update(cart);
-            await Task.CompletedTask;
+            _context.Entry(cart).State = EntityState.Modified;
+            return Task.CompletedTask;
         }
 
         public async Task<bool> ExistsAsync(int cartId, CancellationToken cancellationToken = default)
@@ -60,7 +60,14 @@ namespace CartService.Data
             return await _context.Carts
                 .AnyAsync(c => c.Id == cartId, cancellationToken);
         }
-
+        public async Task<List<Cart>> GetCartsWithProductAsync(int productId, CancellationToken cancellationToken = default)
+        {
+            return await _context.Carts
+                .Include(c => c.Items)
+                .Where(c => c.Status == CartStatus.Active &&
+                           c.Items.Any(i => i.ProductId == productId))
+                .ToListAsync(cancellationToken);
+        }
         public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             await _context.SaveChangesAsync(cancellationToken);

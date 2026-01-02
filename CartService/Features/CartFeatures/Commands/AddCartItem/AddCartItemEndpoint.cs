@@ -14,6 +14,9 @@ namespace CartService.Features.CartFeatures.Commands.AddCartItem
                 [FromServices] IUserContext userContext,
                 CancellationToken cancellationToken) =>
             {
+
+                Console.WriteLine($"UserId: {userContext.UserId}, AnonymousId: {userContext.AnonymousId}");
+
                 var command = new AddCartItemCommand
                 (
                     userContext.UserId,
@@ -33,7 +36,7 @@ namespace CartService.Features.CartFeatures.Commands.AddCartItem
             .Produces<ApiErrorResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status409Conflict)
-            .RequireAuthorization("OptionalAuth");
+            .AllowAnonymous(); 
         }
 
         public record AddCartItemRequest
@@ -41,6 +44,5 @@ namespace CartService.Features.CartFeatures.Commands.AddCartItem
             public required int ProductId { get; init; }
             public required int Quantity { get; init; }
         }
-
     }
 }

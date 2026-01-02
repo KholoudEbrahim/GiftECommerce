@@ -40,15 +40,39 @@ namespace CartService.Data.Migrations
                     b.Property<Guid?>("DeliveryAddressId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int?>("DeliveryAddressType")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("DeliveryFee")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("GiftDeliveryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("GiftMessage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("GiftWrapFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("GiftWrapRequested")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
+
+                    b.Property<bool>("IsGift")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("RecipientName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecipientPhone")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Status")
                         .IsRequired()

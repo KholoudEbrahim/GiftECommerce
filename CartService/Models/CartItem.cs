@@ -19,12 +19,12 @@
         private CartItem() { }
 
         public static CartItem Create(
-             int cartId,
-               int productId,
-             string name,
-             decimal unitPrice,
-             string imageUrl,
-             int quantity)
+       int cartId,
+         int productId,
+       string name,
+       decimal unitPrice,
+       string imageUrl,
+       int quantity)
         {
             if (quantity <= 0)
                 throw new ArgumentException("Quantity must be greater than 0", nameof(quantity));
@@ -34,10 +34,10 @@
 
             return new CartItem
             {
-             
                 CartId = cartId,
                 ProductId = productId,
                 Name = name ?? throw new ArgumentNullException(nameof(name)),
+                ProductName = name, 
                 UnitPrice = unitPrice,
                 ImageUrl = imageUrl ?? throw new ArgumentNullException(nameof(imageUrl)),
                 Quantity = quantity,

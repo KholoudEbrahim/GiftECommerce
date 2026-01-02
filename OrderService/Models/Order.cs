@@ -136,6 +136,10 @@ namespace OrderService.Models
             var random = new Random().Next(1000, 9999);
             return $"ORD-{timestamp}-{random}";
         }
+        public void ConfirmOrder()
+        {
+            UpdateStatus(OrderStatus.Confirmed);
+        }
     }
 }
 

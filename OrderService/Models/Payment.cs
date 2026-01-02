@@ -72,5 +72,27 @@ namespace OrderService.Models
             PaymentGatewayResponse = response;
             UpdatedAt = DateTime.UtcNow;
         }
+        public void MarkAsAwaitingCashPayment()
+        {
+            if (Method != PaymentMethod.CashOnDelivery)
+                throw new InvalidOperationException("Only cash on delivery payments can be marked as awaiting");
+
+            Status = PaymentStatus.AwaitingCashPayment;
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void MarkAsCashPaymentVerified(string transactionId = null)
+        {
+            if (Method != PaymentMethod.CashOnDelivery)
+                throw new InvalidOperationException("Only cash on delivery payments can be verified");
+
+            if (Status != PaymentStatus.AwaitingCashPayment)
+                throw new InvalidOperationException("Payment must be in awaiting state to be verified");
+
+            Status = PaymentStatus.CashPaymentVerified;
+            TransactionId = transactionId ?? $"COD-VERIFIED-{Guid.NewGuid()}";
+            PaidAt = DateTime.UtcNow;
+            UpdatedAt = DateTime.UtcNow;
+        }
     }
 }

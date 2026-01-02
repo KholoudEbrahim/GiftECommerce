@@ -1,18 +1,20 @@
 
+using CartService.Data;
+using CartService.Events.Consumer;
+using CartService.Extensions;
+using CartService.Features.CartFeatures.Commands.AddCartItem;
 using CartService.Features.Shared;
 using CartService.Middleware;
-using CartService.Data;
 using CartService.Models;
-using CartService.Extensions;
 using CartService.Services;
 using CartService.Shared;
 using FluentValidation;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -83,14 +85,71 @@ builder.Services.AddDbContext<CartDbContext>(options =>
         });
 });
 
+
+builder.Services.AddScoped<IValidator<AddCartItemCommand>, AddCartItemValidator>();
+
 // Add Redis caching
 builder.Services.AddStackExchangeRedisCache(options =>
 {
-    options.Configuration = builder.Configuration["Redis:ConnectionString"];
+    var redisConnection = builder.Configuration["Redis:ConnectionString"];
+
+    if (string.IsNullOrEmpty(redisConnection))
+    {
+        redisConnection = "localhost:6379,abortConnect=false,connectTimeout=5000,syncTimeout=5000";
+    }
+
+    options.Configuration = redisConnection;
     options.InstanceName = builder.Configuration["Redis:InstanceName"];
 });
 
+builder.Services.AddMassTransit(x =>
+{
+    x.SetKebabCaseEndpointNameFormatter();
 
+    x.AddConsumer<CartCheckedOutConsumer>();
+    x.AddConsumer<CartUpdatedConsumer>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host("localhost", "/", h =>
+        {
+            h.Username("guest");
+            h.Password("guest");
+        });
+
+        cfg.ConfigureEndpoints(context);
+    });
+});
+
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = builder.Configuration["Jwt:Authority"];
+        options.Audience = builder.Configuration["Jwt:Audience"];
+        options.RequireHttpsMetadata = false; 
+    });
+
+
+builder.Services.AddAuthorization(options =>
+{
+
+    options.AddPolicy("OptionalAuth", policy =>
+    {
+        policy.RequireAssertion(context =>
+        {
+     
+            return context.User.Identity?.IsAuthenticated == true ||
+            
+                   true;
+        });
+    });
+
+    options.AddPolicy("RequireAuth", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+    });
+});
 // Add HTTP clients for external services
 builder.Services.AddHttpClient<IInventoryServiceClient, InventoryServiceClient>((sp, client) =>
 {
