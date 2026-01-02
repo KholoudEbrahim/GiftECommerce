@@ -1,4 +1,5 @@
-﻿using CartService.Models.enums;
+﻿using CartService.Features.CartFeatures.Commands.SetGiftDetails;
+using CartService.Models.enums;
 using CartService.Services.DTOs;
 
 
@@ -16,6 +17,8 @@ namespace CartService.Features.CartFeatures.Queries.GetCart
         public decimal Total { get; init; }
         public Guid? DeliveryAddressId { get; init; }
         public AddressDto? DeliveryAddress { get; init; }
+        public AddressType? DeliveryAddressType { get; init; } 
+        public GiftDetailsDto GiftDetails { get; init; } = new();
         public DateTime CreatedAt { get; init; }
         public DateTime? UpdatedAt { get; init; }
     }

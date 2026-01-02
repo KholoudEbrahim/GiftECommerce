@@ -1,4 +1,5 @@
 ﻿using CartService.Data;
+using CartService.Features.CartFeatures.Commands.SetGiftDetails;
 using CartService.Models;
 using CartService.Models.enums;
 using CartService.Services;
@@ -7,13 +8,9 @@ using MediatR;
 
 namespace CartService.Features.CartFeatures.Queries.GetCart
 {
-    public record GetCartQuery(Guid? UserId,
-       string? AnonymousId,
-         bool IncludeAddressDetails) : IRequest<CartDetailsDto>
+    public record GetCartQuery(Guid? UserId, string? AnonymousId, bool IncludeAddressDetails)
+        : IRequest<CartDetailsDto>
     {
-   
-
-  
         public class Handler : IRequestHandler<GetCartQuery, CartDetailsDto>
         {
             private readonly ICartRepository _cartRepository;
@@ -32,15 +29,20 @@ namespace CartService.Features.CartFeatures.Queries.GetCart
 
             public async Task<CartDetailsDto> Handle(GetCartQuery request, CancellationToken cancellationToken)
             {
-                Models.Cart? cart = await GetCartAsync(request, cancellationToken);
+                Cart? cart = await GetCartAsync(request, cancellationToken);
 
                 if (cart == null)
                 {
-                    // Return empty cart result
                     return new CartDetailsDto
                     {
                         Items = new List<CartItemDto>(),
-                        Status = Models.enums.CartStatus.Active
+                        Status = Models.enums.CartStatus.Active,
+                        GiftDetails = new GiftDetailsDto
+                        {
+                            IsGift = false,
+                            GiftWrapFee = 0,
+                            GiftWrapRequested = false
+                        }
                     };
                 }
 
@@ -58,7 +60,7 @@ namespace CartService.Features.CartFeatures.Queries.GetCart
                 return MapToResult(cart, address);
             }
 
-            private async Task<Models.Cart?> GetCartAsync(GetCartQuery request, CancellationToken cancellationToken)
+            private async Task<Cart?> GetCartAsync(GetCartQuery request, CancellationToken cancellationToken)
             {
                 if (request.UserId.HasValue)
                 {
@@ -75,7 +77,7 @@ namespace CartService.Features.CartFeatures.Queries.GetCart
                 return null;
             }
 
-            private static CartDetailsDto MapToResult(Models.Cart cart, AddressDto? address)
+            private static CartDetailsDto MapToResult(Cart cart, AddressDto? address)
             {
                 return new CartDetailsDto
                 {
@@ -88,7 +90,21 @@ namespace CartService.Features.CartFeatures.Queries.GetCart
                     DeliveryFee = cart.DeliveryFee,
                     Total = cart.Total,
                     DeliveryAddressId = cart.DeliveryAddressId,
-                    DeliveryAddress = address,                  
+                    DeliveryAddressType = cart.DeliveryAddressType,
+                    DeliveryAddress = address,
+
+                    // Gift Details
+                    GiftDetails = new GiftDetailsDto
+                    {
+                        IsGift = cart.IsGift,
+                        RecipientName = cart.RecipientName,
+                        RecipientPhone = cart.RecipientPhone,
+                        GiftMessage = cart.GiftMessage,
+                        DeliveryDate = cart.GiftDeliveryDate,
+                        GiftWrapRequested = cart.GiftWrapRequested,
+                        GiftWrapFee = cart.GiftWrapFee
+                    },
+
                     CreatedAt = cart.CreatedAt,
                     UpdatedAt = cart.UpdatedAt
                 };
@@ -109,4 +125,5 @@ namespace CartService.Features.CartFeatures.Queries.GetCart
             }
         }
     }
+
 }

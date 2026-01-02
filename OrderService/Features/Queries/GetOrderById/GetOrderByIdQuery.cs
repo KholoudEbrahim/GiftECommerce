@@ -4,8 +4,8 @@ using OrderService.Data;
 namespace OrderService.Features.Queries.GetOrderById
 {
     public record GetOrderByIdQuery(
-         Guid UserId,
-         string OrderNumber) : IRequest<OrderDetailsDto>;
+          Guid UserId,
+          string OrderNumber) : IRequest<OrderDetailsDto>;
 
     public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, OrderDetailsDto>
     {
@@ -67,9 +67,10 @@ namespace OrderService.Features.Queries.GetOrderById
                     ImageUrl = i.ImageUrl,
                     Discount = i.Discount,
                     TotalPrice = i.TotalPrice,
-                    Rating = i.Rating,
-                    RatingComment = i.RatingComment,
-                    RatedAt = i.RatedAt
+                   
+                    Rating = i.GetLatestRating(),     
+                    RatingComment = i.GetLatestRatingComment(), 
+                    RatedAt = i.GetLatestRatedAt()      
                 }).ToList(),
                 Delivery = order.Delivery != null ? new DeliveryDetailsDto
                 {

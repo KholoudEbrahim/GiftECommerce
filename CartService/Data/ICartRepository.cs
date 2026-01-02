@@ -11,6 +11,7 @@ namespace CartService.Data
         Task AddAsync(Cart cart, CancellationToken cancellationToken = default);
         Task UpdateAsync(Cart cart, CancellationToken cancellationToken = default);
         Task<bool> ExistsAsync(int cartId, CancellationToken cancellationToken = default);
+        Task<List<Cart>> GetCartsWithProductAsync(int productId, CancellationToken cancellationToken = default);
         Task SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }

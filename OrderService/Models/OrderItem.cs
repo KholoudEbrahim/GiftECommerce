@@ -13,24 +13,28 @@ namespace OrderService.Models
         public decimal Discount { get; private set; } = 0;
         public decimal TotalPrice => UnitPrice * Quantity - Discount;
 
-        public int? Rating { get; private set; }
-        public string? RatingComment { get; private set; }
-        public DateTime? RatedAt { get; private set; }
+        public int? GetLatestRating() =>
+               Ratings?.OrderByDescending(r => r.RatedAt).FirstOrDefault()?.Score;
 
-  
+        public string? GetLatestRatingComment() =>
+            Ratings?.OrderByDescending(r => r.RatedAt).FirstOrDefault()?.Comment;
+
+        public DateTime? GetLatestRatedAt() =>
+            Ratings?.OrderByDescending(r => r.RatedAt).FirstOrDefault()?.RatedAt;
+
         public Order Order { get; private set; } = default!;
         public ICollection<Rating>? Ratings { get; private set; }
 
         private OrderItem() { }
 
         public static OrderItem Create(
-       int orderId,
-       int productId,
-       string productName,
-       decimal unitPrice,
-       int quantity,
-       string? imageUrl,
-       decimal discount = 0)
+            int orderId,
+            int productId,
+            string productName,
+            decimal unitPrice,
+            int quantity,
+            string? imageUrl,
+            decimal discount = 0)
         {
             if (quantity <= 0)
                 throw new ArgumentException("Quantity must be greater than 0", nameof(quantity));
@@ -48,20 +52,6 @@ namespace OrderService.Models
                 ImageUrl = imageUrl,
                 Discount = discount
             };
-        }
-
-        public void AddRating(int rating, string? comment)
-        {
-            if (rating < 1 || rating > 5)
-                throw new ArgumentException("Rating must be between 1 and 5", nameof(rating));
-
-            if (rating <= 3 && string.IsNullOrWhiteSpace(comment))
-                throw new ArgumentException("Comment is required for ratings 3 or below", nameof(comment));
-
-            Rating = rating;
-            RatingComment = comment;
-            RatedAt = DateTime.UtcNow;
-            UpdatedAt = DateTime.UtcNow;
         }
 
         public void UpdateQuantity(int quantity)

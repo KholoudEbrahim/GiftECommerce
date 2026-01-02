@@ -41,9 +41,7 @@ services:
       - DOTNET_RUNNING_IN_CONTAINER=true
       - ConnectionStrings__DefaultConnection=Server=72.61.102.216;Database=IdentityDb;User Id=sa;Password=g19HBzycmCfePY6MREFm;TrustServerCertificate=True;MultipleActiveResultSets=true
     command: ["dotnet", "IdentityService.dll", "--urls", "http://0.0.0.0:8080"]
-    depends_on:
-      sqlserver:
-        condition: service_healthy
+
 
 
   userprofileservice:
@@ -74,8 +72,7 @@ services:
       - ConnectionStrings__DefaultConnection=Server=72.61.102.216;Database=Ecommerce-CatalogDb;User Id=sa;Password=g19HBzycmCfePY6MREFm;TrustServerCertificate=True;MultipleActiveResultSets=true
     command: ["dotnet", "CategoryService.dll", "--urls", "http://0.0.0.0:8080"]
     depends_on:
-     
-      - redis
+    - redis
 
   cartservice:
     environment:

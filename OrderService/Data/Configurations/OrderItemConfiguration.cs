@@ -37,13 +37,6 @@ namespace OrderService.Data.Configurations
                   .HasPrecision(18, 2)
                    .HasDefaultValue(null);
 
-            builder.Property(i => i.Rating)
-                .IsRequired(false);
-
-            builder.Property(i => i.RatingComment)
-                .IsRequired(false)
-                .HasMaxLength(1000);
-
             // Indexes
             builder.HasIndex(i => new { i.OrderId, i.ProductId })
                 .HasDatabaseName("IX_OrderItems_OrderId_ProductId");
