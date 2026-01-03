@@ -9,9 +9,12 @@ namespace UserProfileService.Application
     {
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
-            // MediatR
             services.AddMediatR(cfg =>
-                cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+            {
+                cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
+
+                cfg.Lifetime = ServiceLifetime.Scoped;
+            });
 
             // FluentValidation
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
@@ -19,14 +22,8 @@ namespace UserProfileService.Application
             // Validation Behavior
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
-            // Auto-register all handlers
-            services.Scan(scan => scan
-                .FromAssemblyOf<Program>()
-                .AddClasses()
-                .AsImplementedInterfaces()
-                .WithScopedLifetime());
-
             return services;
         }
     }
 }
+

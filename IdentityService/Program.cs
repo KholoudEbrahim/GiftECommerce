@@ -53,21 +53,27 @@ namespace IdentityService
                 // MediatR
                 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
-              
+
                 builder.Services.AddMassTransit(x =>
                 {
                     x.SetKebabCaseEndpointNameFormatter();
+
                     x.UsingRabbitMq((context, cfg) =>
                     {
-                        cfg.Host("rabbit", "/", h =>
+                        cfg.Host(builder.Configuration["RabbitMQ:Host"], "/", h =>
                         {
-                            h.Username("admin");
-                            h.Password("admin123");
+                            h.Username(builder.Configuration["RabbitMQ:Username"]);
+                            h.Password(builder.Configuration["RabbitMQ:Password"]);
                         });
+
+
+                        cfg.ConfigureEndpoints(context);
                     });
                 });
 
-          
+
+                builder.Services.AddScoped<IUserEventPublisher, UserEventPublisher>();
+
                 builder.Services.AddAuthentication();
                 builder.Services.AddAuthorization();
 

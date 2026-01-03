@@ -6,12 +6,12 @@ using UserProfileService.Models;
 namespace UserProfileService.Features.Commands.UpdateProfile
 {
     public record UpdateProfileCommand(
-     Guid UserId,
-     string FirstName,
-     string LastName,
-     string? PhoneNumber,
-     DateTime? DateOfBirth,
-     string? ProfilePictureUrl) : IRequest<ApiResponse<UpdatedProfileResponse>>
+       Guid UserId,
+       string FirstName,
+       string LastName,
+       string? PhoneNumber,
+       DateTime? DateOfBirth,
+       string? ProfilePictureUrl) : IRequest<ApiResponse<UpdatedProfileResponse>>
     {
         public class UpdateProfileHandler : IRequestHandler<UpdateProfileCommand, ApiResponse<UpdatedProfileResponse>>
         {
@@ -32,12 +32,12 @@ namespace UserProfileService.Features.Commands.UpdateProfile
             {
                 try
                 {
-                    // Check if profile exists
+
                     var existingProfile = await _userProfileRepository.GetByUserIdAsync(request.UserId, cancellationToken);
 
                     if (existingProfile == null)
                     {
-                        // Create new profile if it doesn't exist
+                      
                         existingProfile = new UserProfile(
                             request.UserId,
                             request.FirstName,
@@ -50,10 +50,13 @@ namespace UserProfileService.Features.Commands.UpdateProfile
                             request.DateOfBirth);
 
                         await _userProfileRepository.AddAsync(existingProfile, cancellationToken);
+                        await _userProfileRepository.SaveChangesAsync(cancellationToken);
+
+                        _logger.LogInformation(" Profile created for user {UserId} via UpdateProfile", request.UserId);
                     }
                     else
                     {
-                        // Update existing profile
+
                         existingProfile.UpdateProfile(
                             request.FirstName,
                             request.LastName,
@@ -61,9 +64,8 @@ namespace UserProfileService.Features.Commands.UpdateProfile
                             request.DateOfBirth);
 
                         await _userProfileRepository.UpdateAsync(existingProfile, cancellationToken);
+                        await _userProfileRepository.SaveChangesAsync(cancellationToken);
                     }
-
-                    await _userProfileRepository.SaveChangesAsync(cancellationToken);
 
                     _logger.LogInformation("Profile updated for user {UserId}", request.UserId);
 
@@ -80,6 +82,5 @@ namespace UserProfileService.Features.Commands.UpdateProfile
                 }
             }
         }
-
     }
 }

@@ -24,64 +24,56 @@ namespace UserProfileService.Events
                 var @event = context.Message;
 
                 _logger.LogInformation(
-                    " Received UserCreatedEvent for user: {UserId} ({Email})",
+                    "Received UserCreatedEvent for user: {UserId} ({Email})",
                     @event.UserId, @event.Email);
 
+            
                 var existingProfile = await _repository.GetByUserIdAsync(@event.UserId);
-
                 if (existingProfile != null)
                 {
                     _logger.LogWarning(
-                        " Profile already exists for user: {UserId}. Skipping...",
+                        "Profile already exists for user: {UserId}. Skipping...",
                         @event.UserId);
                     return;
                 }
 
-    
+   
                 var profile = new UserProfile(
                     @event.UserId,
                     @event.FirstName ?? "User",
                     @event.LastName ?? "User");
 
-     
-                if (!string.IsNullOrEmpty(@event.PhoneNumber))
+        
+                if (!string.IsNullOrEmpty(@event.Phone))
                 {
                     profile.UpdateProfile(
                         @event.FirstName ?? "User",
                         @event.LastName ?? "User",
-                        @event.PhoneNumber,
+                        @event.Phone,
                         null);
                 }
 
-         
                 await _repository.AddAsync(profile);
                 await _repository.SaveChangesAsync();
 
                 _logger.LogInformation(
-                    " Profile created successfully for user: {UserId}. Profile ID: {ProfileId}",
+                    "Profile created successfully for user: {UserId}. Profile ID: {ProfileId}",
                     @event.UserId, profile.Id);
-
-         
-                await context.Publish(new ProfileCreatedEvent
-                {
-                    UserId = @event.UserId,
-                    ProfileId = profile.Id,
-                    CreatedAt = DateTime.UtcNow
-                });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, " Error processing UserCreatedEvent for user {UserId}",
+                _logger.LogError(ex, "Error processing UserCreatedEvent for user {UserId}",
                     context.Message?.UserId);
 
-
+       
                 throw;
             }
         }
     }
 
 
-    public class ProfileCreatedEvent
+
+public class ProfileCreatedEvent
     {
         public Guid UserId { get; set; }
         public Guid ProfileId { get; set; }
@@ -94,10 +86,11 @@ namespace UserProfileService.Events
     public class UserCreatedEvent
     {
         public Guid UserId { get; set; }
-        public string Email { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string? PhoneNumber { get; set; }
+        public string Email { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public string Gender { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
     }
 }

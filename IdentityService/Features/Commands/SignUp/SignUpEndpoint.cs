@@ -14,11 +14,18 @@ namespace IdentityService.Features.Commands.SignUp
             {
                 var result = await handler.Handle(command, cancellationToken);
 
-                return result.IsSuccess
-                    ? Results.Created($"/api/users/{result.Data.UserId}",
-                        EndpointResponse<SignUpResponseDto>.Success(result.Data, result.Message, result.StatusCode))
-                    : Results.BadRequest(
-                        EndpointResponse<SignUpResponseDto>.Fail(result.Message, result.StatusCode));
+                return result.StatusCode switch
+                {
+                    201 => Results.Created($"/api/users/{result.Data.UserId}",
+                        EndpointResponse<SignUpResponseDto>.Success(result.Data, result.Message, result.StatusCode)),
+                    400 => Results.BadRequest(
+                        EndpointResponse<SignUpResponseDto>.Fail(result.Message, result.StatusCode)),
+                    409 => Results.Conflict(
+                        EndpointResponse<SignUpResponseDto>.Fail(result.Message, result.StatusCode)),
+                    _ => Results.Problem(
+                        detail: result.Message,
+                        statusCode: result.StatusCode)
+                };
             })
             .WithName("SignUp")
             .WithTags("Authentication")

@@ -57,7 +57,8 @@ namespace IdentityService.Data
                     .HasDefaultValue("User");
 
                 entity.Property(e => e.EmailVerified)
-                    .HasDefaultValue(false);
+                    .IsRequired()
+                   .HasDefaultValue(false);
 
                 entity.Property(e => e.CreatedAt)
                     .HasDefaultValueSql("GETUTCDATE()");
