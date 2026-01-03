@@ -51,6 +51,8 @@ namespace UserProfileService.Features.Commands.UpdateProfile
             .Produces<ApiResponse<UpdatedProfileResponse>>(StatusCodes.Status200OK)
             .Produces<ApiResponse<object>>(StatusCodes.Status400BadRequest)
             .WithTags("Profile");
+
+
         }
     }
 }

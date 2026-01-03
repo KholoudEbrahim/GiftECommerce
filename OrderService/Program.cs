@@ -71,10 +71,10 @@ namespace OrderService
             app.UseAuthorization();
 
             // Map endpoints
-            app.MapOrderEndpoints();
+ 
             app.MapHealthChecks("/health");
             app.MapGroup("/api/webhooks")
-              .MapStripeWebhook();
+           ;
 
 
 
