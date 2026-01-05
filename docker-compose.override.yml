@@ -45,13 +45,17 @@ services:
 
 
   userprofileservice:
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:8080
-      - DOTNET_RUNNING_IN_CONTAINER=true
-      - ConnectionStrings__DefaultConnection=Server=72.61.102.216;Database=UserProfileDb;User Id=sa;Password=g19HBzycmCfePY6MREFm;TrustServerCertificate=True;MultipleActiveResultSets=true
-    command: ["dotnet", "UserProfileService.dll", "--urls", "http://0.0.0.0:8080"]
-
+   environment:
+    - ASPNETCORE_ENVIRONMENT=Development
+    - ASPNETCORE_URLS=http://+:8080
+    - DOTNET_RUNNING_IN_CONTAINER=true
+    - ConnectionStrings__DefaultConnection=Server=72.61.102.216;Database=UserProfileDb;User Id=sa;Password=g19HBzycmCfePY6MREFm;TrustServerCertificate=True;MultipleActiveResultSets=true
+    - Jwt__Secret=qdg46ij8847iSgyy8ujiJedrfghjklo8765434rfghjkghjkdfghjoiuyt4567jhgfddfgh
+    - Jwt__Issuer=IdentityService-Dev
+    - Jwt__Audience=IdentityService-Clients
+    - Jwt__RequireHttpsMetadata=false
+    - ExternalServices__IdentityServiceBaseUrl=http://identityservice:8080
+   command: ["dotnet", "UserProfileService.dll", "--urls", "http://0.0.0.0:8080"]
  
 
   inventoryservice:

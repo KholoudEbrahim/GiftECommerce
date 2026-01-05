@@ -103,6 +103,7 @@ services:
       - "5009:8080"
     depends_on:
       - identityservice
+      - rabbit 
 
 volumes:
   redis_data:

@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using MediatR;
 using UserProfileService.Features.Shared;
+using UserProfileService.Infrastructure;
 
 namespace UserProfileService.Features.Commands.DeliveryAddress
 {
@@ -15,11 +16,12 @@ namespace UserProfileService.Features.Commands.DeliveryAddress
                 IValidator<AddDeliveryAddressCommand> validator,
                 CancellationToken cancellationToken) =>
             {
-                // Get user ID from claims
-                var userIdClaim = httpContext.User.FindFirst("sub")?.Value
-                    ?? httpContext.User.FindFirst("userId")?.Value;
-
-                if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                Guid userId;
+                try
+                {
+                    userId = httpContext.User.GetUserId();
+                }
+                catch
                 {
                     return Results.Unauthorized();
                 }
@@ -35,7 +37,6 @@ namespace UserProfileService.Features.Commands.DeliveryAddress
                     request.Apartment,
                     request.IsPrimary);
 
-                // Validate command
                 var validationResult = await validator.ValidateAsync(command, cancellationToken);
                 if (!validationResult.IsValid)
                 {

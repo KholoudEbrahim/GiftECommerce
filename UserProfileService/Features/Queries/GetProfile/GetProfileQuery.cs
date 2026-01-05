@@ -1,15 +1,18 @@
 ﻿using MediatR;
+using UserProfileService.Application;
 using UserProfileService.Data;
 using UserProfileService.Features.Shared;
-using UserProfileService.Services;
 using UserProfileService.Models;
+using UserProfileService.Services;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace UserProfileService.Features.Queries.GetProfile
 {
-    public record GetUserProfileQuery(Guid UserId) : IRequest<ApiResponse<UserProfileDto>>
+    public record GetUserProfileQuery(Guid UserId)
+        : IRequest<ApiResponse<UserProfileDto>>
     {
-        public class GetUserProfileHandler : IRequestHandler<GetUserProfileQuery, ApiResponse<UserProfileDto>>
+        public class GetUserProfileHandler
+            : IRequestHandler<GetUserProfileQuery, ApiResponse<UserProfileDto>>
         {
             private readonly IUserProfileRepository _userProfileRepository;
             private readonly IIdentityServiceClient _identityServiceClient;
@@ -31,62 +34,72 @@ namespace UserProfileService.Features.Queries.GetProfile
             {
                 try
                 {
-                
-                    var userProfile = await _userProfileRepository.GetByUserIdAsync(request.UserId, cancellationToken);
+                    _logger.LogInformation(
+                        "Fetching profile for user {UserId}", request.UserId);
 
-               
-                    var identityInfo = await _identityServiceClient.GetUserIdentityAsync(request.UserId, cancellationToken);
+           var userProfile = await UserProfileFactory.GetOrCreateAsync(
+                        request.UserId,
+                        _userProfileRepository,
+                        cancellationToken);
 
-                    if (identityInfo == null)
+                    if (userProfile.CreatedAt == userProfile.UpdatedAt)
                     {
-                        return ApiResponse<UserProfileDto>.Failure("User not found in identity service");
-                    }
-
-            
-                    var profileDto = new UserProfileDto
-                    {
-                        UserId = request.UserId,
-                        Email = identityInfo.Email,
-                        PhoneNumber = identityInfo.PhoneNumber, 
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    };
-
-                    if (userProfile != null)
-                    {
-
-                        profileDto.Id = userProfile.Id;
-                        profileDto.FirstName = userProfile.FirstName;
-                        profileDto.LastName = userProfile.LastName;
-                        profileDto.PhoneNumber = userProfile.PhoneNumber ?? identityInfo.PhoneNumber;
-                        profileDto.ProfilePictureUrl = userProfile.ProfilePictureUrl;
-                        profileDto.CreatedAt = userProfile.CreatedAt;
-                        profileDto.UpdatedAt = userProfile.UpdatedAt;
-
-                        // Map delivery addresses
-                        profileDto.DeliveryAddresses = userProfile.DeliveryAddresses
-                            .Select(MapToDeliveryAddressDto)
-                            .ToList();
+                        _logger.LogInformation(
+                            "Profile created on-demand for user {UserId}", request.UserId);
                     }
                     else
                     {
-                 
-                        profileDto.Id = Guid.NewGuid();
-                        profileDto.FirstName = identityInfo.FirstName;
-                        profileDto.LastName = identityInfo.LastName;
-                     
+                        _logger.LogInformation(
+                            "Existing profile found for user {UserId}", request.UserId);
                     }
+
+                    var identityInfo = await _identityServiceClient
+                    .GetUserIdentityAsync(request.UserId, cancellationToken);
+
+                    if (identityInfo == null)
+                    {
+                        _logger.LogWarning(
+                            "Identity service unavailable or user not found for {UserId}. Returning profile data only.",
+                            request.UserId);
+                    }
+
+                    var profileDto = new UserProfileDto
+                    {
+                        Id = userProfile.Id,
+                        UserId = request.UserId,
+                        FirstName = userProfile.FirstName,
+                        LastName = userProfile.LastName,
+                        Email = identityInfo?.Email,
+                        PhoneNumber = userProfile.PhoneNumber
+                             ?? identityInfo?.PhoneNumber,
+                        ProfilePictureUrl = userProfile.ProfilePictureUrl,
+                        CreatedAt = userProfile.CreatedAt,
+                        UpdatedAt = userProfile.UpdatedAt,
+                        DeliveryAddresses = userProfile.DeliveryAddresses
+                            .Where(a => !a.IsDeleted)
+                            .Select(MapToDeliveryAddressDto)
+                            .ToList()
+                    };
+
+                    _logger.LogInformation(
+                        "Profile retrieved successfully for user {UserId}", request.UserId);
 
                     return ApiResponse<UserProfileDto>.Success(profileDto);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error getting user profile for user {UserId}", request.UserId);
-                    return ApiResponse<UserProfileDto>.Failure("An error occurred while retrieving user profile");
+                    _logger.LogError(
+                        ex,
+                        "Unexpected error while retrieving profile for user {UserId}",
+                        request.UserId);
+
+                    return ApiResponse<UserProfileDto>.Failure(
+                        "An error occurred while retrieving user profile");
                 }
             }
 
-            private static DeliveryAddressDto MapToDeliveryAddressDto(DeliveryAddress address)
+            private static DeliveryAddressDto MapToDeliveryAddressDto(
+                DeliveryAddress address)
             {
                 return new DeliveryAddressDto
                 {
@@ -101,10 +114,10 @@ namespace UserProfileService.Features.Queries.GetProfile
                     IsPrimary = address.IsPrimary,
                     CreatedAt = address.CreatedAt,
                     UpdatedAt = address.UpdatedAt
-
                 };
             }
         }
     }
+
 }
 

@@ -16,17 +16,23 @@ namespace UserProfileService.Data
 
         public DbSet<UserProfile> UserProfiles { get; set; }
         public DbSet<DeliveryAddress> DeliveryAddresses { get; set; }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(UserProfileDbContext).Assembly);
 
-            // Global query filters
-            modelBuilder.Entity<UserProfile>()
-                .HasQueryFilter(p => !p.IsDeleted); // Assuming soft delete pattern
+            modelBuilder.Entity<UserProfile>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+
+                entity.HasIndex(x => x.UserId)
+                      .IsUnique();
+
+                entity.HasQueryFilter(x => !x.IsDeleted);
+            });
 
             base.OnModelCreating(modelBuilder);
         }
+
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
