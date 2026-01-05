@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using MediatR;
 using UserProfileService.Features.Shared;
+using UserProfileService.Infrastructure;
 
 namespace UserProfileService.Features.Commands.UpdateProfile
 {
@@ -15,11 +16,12 @@ namespace UserProfileService.Features.Commands.UpdateProfile
                 IValidator<UpdateProfileCommand> validator,
                 CancellationToken cancellationToken) =>
             {
-                // Get user ID from claims
-                var userIdClaim = httpContext.User.FindFirst("sub")?.Value
-                    ?? httpContext.User.FindFirst("userId")?.Value;
-
-                if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                Guid userId;
+                try
+                {
+                    userId = httpContext.User.GetUserId();
+                }
+                catch
                 {
                     return Results.Unauthorized();
                 }
@@ -32,7 +34,6 @@ namespace UserProfileService.Features.Commands.UpdateProfile
                     request.DateOfBirth,
                     request.ProfilePictureUrl);
 
-                // Validate command
                 var validationResult = await validator.ValidateAsync(command, cancellationToken);
                 if (!validationResult.IsValid)
                 {
@@ -51,8 +52,6 @@ namespace UserProfileService.Features.Commands.UpdateProfile
             .Produces<ApiResponse<UpdatedProfileResponse>>(StatusCodes.Status200OK)
             .Produces<ApiResponse<object>>(StatusCodes.Status400BadRequest)
             .WithTags("Profile");
-
-
         }
     }
 }

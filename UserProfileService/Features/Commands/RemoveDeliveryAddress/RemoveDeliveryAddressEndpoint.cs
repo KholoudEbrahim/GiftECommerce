@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using MediatR;
 using UserProfileService.Features.Shared;
+using UserProfileService.Infrastructure;
 
 namespace UserProfileService.Features.Commands.RemoveDeliveryAddress
 {
@@ -14,17 +15,17 @@ namespace UserProfileService.Features.Commands.RemoveDeliveryAddress
                 Guid addressId,
                 CancellationToken cancellationToken) =>
             {
-             
-                var userIdClaim = httpContext.User.FindFirst("sub")?.Value
-                    ?? httpContext.User.FindFirst("userId")?.Value;
-
-                if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                Guid userId;
+                try
+                {
+                    userId = httpContext.User.GetUserId();
+                }
+                catch
                 {
                     return Results.Unauthorized();
                 }
 
                 var command = new RemoveDeliveryAddressCommand(userId, addressId);
-
                 var result = await mediator.Send(command, cancellationToken);
 
                 return result.IsSuccess

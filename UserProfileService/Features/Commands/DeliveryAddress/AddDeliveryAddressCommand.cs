@@ -1,49 +1,48 @@
 ﻿using MediatR;
+using Microsoft.EntityFrameworkCore;
+using UserProfileService.Application;
 using UserProfileService.Data;
 using UserProfileService.Features.Shared;
 
 namespace UserProfileService.Features.Commands.DeliveryAddress
 {
     public record AddDeliveryAddressCommand(
-       Guid UserId,
-       string Alias,
-       string Street,
-       string City,
-       string Governorate,
-       string Building,
-       string? Floor,
-       string? Apartment,
-       bool IsPrimary) : IRequest<ApiResponse<DeliveryAddressResponse>>
+         Guid UserId,
+         string Alias,
+         string Street,
+         string City,
+         string Governorate,
+         string Building,
+         string? Floor,
+         string? Apartment,
+         bool IsPrimary
+      ) : IRequest<ApiResponse<DeliveryAddressResponse>>
     {
-        public class AddDeliveryAddressHandler : IRequestHandler<AddDeliveryAddressCommand, ApiResponse<DeliveryAddressResponse>>
+        public class Handler : IRequestHandler<AddDeliveryAddressCommand, ApiResponse<DeliveryAddressResponse>>
         {
-            private readonly IUserProfileRepository _userProfileRepository;
-            private readonly ILogger<AddDeliveryAddressHandler> _logger;
+            private readonly IUserProfileRepository _repository;
+            private readonly ILogger<Handler> _logger;
 
-            public AddDeliveryAddressHandler(
-                IUserProfileRepository userProfileRepository,
-                ILogger<AddDeliveryAddressHandler> logger)
+            public Handler(
+                IUserProfileRepository repository,
+                ILogger<Handler> logger)
             {
-                _userProfileRepository = userProfileRepository;
+                _repository = repository;
                 _logger = logger;
             }
 
             public async Task<ApiResponse<DeliveryAddressResponse>> Handle(
-                AddDeliveryAddressCommand request,
-                CancellationToken cancellationToken)
+                      AddDeliveryAddressCommand request,
+                       CancellationToken cancellationToken)
             {
                 try
                 {
-                    // Get user profile
-                    var userProfile = await _userProfileRepository.GetByUserIdAsync(request.UserId, cancellationToken);
+                    var userProfile = await UserProfileFactory.GetOrCreateAsync(
+                        request.UserId,
+                        _repository,
+                        cancellationToken);
 
-                    if (userProfile == null)
-                    {
-                        return ApiResponse<DeliveryAddressResponse>.Failure("User profile not found");
-                    }
-
-                    // Add delivery address
-                    var deliveryAddress = userProfile.AddDeliveryAddress(
+                    var address = userProfile.AddDeliveryAddress(
                         request.Alias,
                         request.Street,
                         request.City,
@@ -53,26 +52,36 @@ namespace UserProfileService.Features.Commands.DeliveryAddress
                         request.Apartment,
                         request.IsPrimary);
 
-                    await _userProfileRepository.UpdateAsync(userProfile, cancellationToken);
-                    await _userProfileRepository.SaveChangesAsync(cancellationToken);
 
-                    _logger.LogInformation(
-                        "Delivery address added for user {UserId}, address ID: {AddressId}",
-                        request.UserId, deliveryAddress.Id);
+                    await _repository.SaveChangesAsync(cancellationToken);
 
                     return ApiResponse<DeliveryAddressResponse>.Success(new DeliveryAddressResponse
                     {
-                        AddressId = deliveryAddress.Id,
-                        CreatedAt = deliveryAddress.CreatedAt
+                        AddressId = address.Id,
+                        CreatedAt = address.CreatedAt
                     });
+                }
+                catch (DbUpdateConcurrencyException ex)
+                {
+                    _logger.LogWarning(
+                        ex,
+                        "Concurrency conflict while adding address for user {UserId}",
+                        request.UserId);
+
+                    return ApiResponse<DeliveryAddressResponse>.Failure(
+                        "Profile was modified concurrently. Please retry.");
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error adding delivery address for user {UserId}", request.UserId);
-                    return ApiResponse<DeliveryAddressResponse>.Failure("An error occurred while adding delivery address");
+                    _logger.LogError(ex,
+                        "Unexpected error while adding delivery address for user {UserId}",
+                        request.UserId);
+
+                    return ApiResponse<DeliveryAddressResponse>.Failure(
+                        "Failed to add delivery address");
                 }
             }
         }
     }
-   
+
 }

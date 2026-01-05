@@ -34,7 +34,15 @@ namespace UserProfileService.Services
                 var response = await _retryPolicy.ExecuteAsync(async () =>
                     await _httpClient.GetAsync($"api/users/{userId}", cancellationToken));
 
-                response.EnsureSuccessStatusCode();
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning(
+                        "Identity service returned {StatusCode} for user {UserId}",
+                        response.StatusCode, userId);
+
+                    return null;
+                }
+
 
                 return await response.Content.ReadFromJsonAsync<UserIdentityDto>(cancellationToken: cancellationToken);
             }

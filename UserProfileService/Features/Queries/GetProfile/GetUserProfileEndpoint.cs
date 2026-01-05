@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using MediatR;
 using UserProfileService.Features.Shared;
+using UserProfileService.Infrastructure;
 
 namespace UserProfileService.Features.Queries.GetProfile
 {
@@ -14,18 +15,18 @@ namespace UserProfileService.Features.Queries.GetProfile
                 IValidator<GetUserProfileQuery> validator,
                 CancellationToken cancellationToken) =>
             {
-           
-                var userIdClaim = httpContext.User.FindFirst("sub")?.Value
-                    ?? httpContext.User.FindFirst("userId")?.Value;
-
-                if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                Guid userId;
+                try
+                {
+                    userId = httpContext.User.GetUserId();
+                }
+                catch
                 {
                     return Results.Unauthorized();
                 }
 
                 var query = new GetUserProfileQuery(userId);
 
-             
                 var validationResult = await validator.ValidateAsync(query, cancellationToken);
                 if (!validationResult.IsValid)
                 {

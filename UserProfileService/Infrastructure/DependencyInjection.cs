@@ -27,18 +27,19 @@ namespace UserProfileService.Infrastructure
             // Repository
             services.AddScoped<IUserProfileRepository, UserProfileRepository>();
 
-            // HTTP Client for Identity Service with Polly
+
             services.AddHttpClient<IIdentityServiceClient, IdentityServiceClient>((sp, client) =>
             {
                 var config = sp.GetRequiredService<IConfiguration>();
-                client.BaseAddress = new Uri(config["IdentityService:BaseUrl"]);
-                client.DefaultRequestHeaders.Add("Accept", "application/json");
-            })
-                .AddTransientHttpErrorPolicy(policy =>
-                    policy.WaitAndRetryAsync(3, retryAttempt =>
-                        TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))))
-                .AddTransientHttpErrorPolicy(policy =>
-                    policy.CircuitBreakerAsync(5, TimeSpan.FromSeconds(30)));
+                var baseUrl = config["ExternalServices:IdentityServiceBaseUrl"];
+
+                if (string.IsNullOrWhiteSpace(baseUrl))
+                    throw new InvalidOperationException(
+                        "ExternalServices:IdentityServiceBaseUrl is not configured");
+
+                client.BaseAddress = new Uri(baseUrl);
+            });
+
 
             return services;
         }
