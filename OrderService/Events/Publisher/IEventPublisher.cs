@@ -19,5 +19,12 @@ namespace OrderService.Events.Publisher
             string orderNumber,
             List<InventoryItem> items,
             CancellationToken cancellationToken = default);
+        Task PublishRefundCompletedAsync(
+    Order order,
+    Payment payment,
+    string refundId,
+    decimal refundAmount,
+    string reason,
+    CancellationToken cancellationToken = default);
     }
 }

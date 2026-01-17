@@ -12,11 +12,15 @@ namespace UserProfileService.Data
             _context = context;
         }
 
-        public async Task<UserProfile?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+        public async Task<UserProfile?> GetByUserIdAsync(
+            Guid userId,
+            CancellationToken cancellationToken = default)
         {
             return await _context.UserProfiles
-                .Include(p => p.DeliveryAddresses)
-                .FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
+                .AsTracking()
+                .FirstOrDefaultAsync(
+                    p => p.UserId == userId,
+                    cancellationToken);
         }
 
         public async Task<UserProfile?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -42,7 +46,28 @@ namespace UserProfileService.Data
             return await _context.UserProfiles
                 .AnyAsync(p => p.UserId == userId, cancellationToken);
         }
+        public async Task AddAddressAsync(
+       DeliveryAddress address,
+       CancellationToken cancellationToken = default)
+        {
+            await _context.DeliveryAddresses.AddAsync(address, cancellationToken);
+        }
 
+        public async Task UnsetPrimaryAddressesAsync(
+            Guid userProfileId,
+            CancellationToken cancellationToken = default)
+        {
+            await _context.DeliveryAddresses
+                .Where(a =>
+                    a.UserProfileId == userProfileId &&
+                    a.IsPrimary &&
+                    !a.IsDeleted)
+                .ExecuteUpdateAsync(
+                    setters => setters
+                        .SetProperty(a => a.IsPrimary, false)
+                        .SetProperty(a => a.UpdatedAt, DateTime.UtcNow),
+                    cancellationToken);
+        }
         public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             await _context.SaveChangesAsync(cancellationToken);

@@ -11,6 +11,14 @@ namespace UserProfileService.Data
         Task<bool> ExistsAsync(Guid userId, CancellationToken cancellationToken = default);
         Task SaveChangesAsync(CancellationToken cancellationToken = default);
         Task<DeliveryAddress?> GetAddressByIdAsync(Guid addressId, CancellationToken cancellationToken = default);
+        Task AddAddressAsync(
+          DeliveryAddress address,
+          CancellationToken cancellationToken = default);
+
+        Task UnsetPrimaryAddressesAsync(
+            Guid userProfileId,
+            CancellationToken cancellationToken = default);
+
         Task<bool> IsAddressOwnedByUserAsync(Guid addressId, Guid userId, CancellationToken cancellationToken = default);
     }
 }

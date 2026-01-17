@@ -29,7 +29,7 @@ namespace OrderService.Migrations
                     Total = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     DeliveryAddressId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     DeliveryAddressJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CartId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    CartId = table.Column<int>(type: "int", nullable: true),
                     Notes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -48,7 +48,7 @@ namespace OrderService.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     OrderId = table.Column<int>(type: "int", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     EstimatedDeliveryTime = table.Column<DateTime>(type: "datetime2", nullable: true),
                     ActualDeliveryTime = table.Column<DateTime>(type: "datetime2", nullable: true),
                     DeliveryHeroId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
@@ -87,9 +87,6 @@ namespace OrderService.Migrations
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     ImageUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     Discount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    Rating = table.Column<int>(type: "int", nullable: true),
-                    RatingComment = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    RatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
@@ -114,7 +111,7 @@ namespace OrderService.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     OrderId = table.Column<int>(type: "int", nullable: false),
                     Method = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     TransactionId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     PaymentGatewayResponse = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -123,6 +120,10 @@ namespace OrderService.Migrations
                     StripePaymentIntentId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     StripeCustomerId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     CardLastFour = table.Column<string>(type: "nvarchar(4)", maxLength: 4, nullable: true),
+                    RefundId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    RefundAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
+                    RefundedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    RefundReason = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
@@ -168,10 +169,20 @@ namespace OrderService.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Deliveries_DeliveryHeroId",
+                table: "Deliveries",
+                column: "DeliveryHeroId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Deliveries_OrderId",
                 table: "Deliveries",
                 column: "OrderId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Deliveries_Status",
+                table: "Deliveries",
+                column: "Status");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderItems_OrderId_ProductId",
@@ -184,10 +195,31 @@ namespace OrderService.Migrations
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Orders_CartId",
+                table: "Orders",
+                column: "CartId",
+                filter: "[CartId] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_CreatedAt",
+                table: "Orders",
+                column: "CreatedAt");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Orders_OrderNumber",
                 table: "Orders",
                 column: "OrderNumber",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_Status",
+                table: "Orders",
+                column: "Status");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_UserId",
+                table: "Orders",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Orders_UserId_Status",
@@ -199,6 +231,23 @@ namespace OrderService.Migrations
                 table: "Payments",
                 column: "OrderId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Payments_Status",
+                table: "Payments",
+                column: "Status");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Payments_StripePaymentIntentId",
+                table: "Payments",
+                column: "StripePaymentIntentId",
+                filter: "[StripePaymentIntentId] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Payments_TransactionId",
+                table: "Payments",
+                column: "TransactionId",
+                filter: "[TransactionId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Ratings_OrderItemId",

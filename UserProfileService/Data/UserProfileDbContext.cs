@@ -26,6 +26,19 @@ namespace UserProfileService.Data
 
                 entity.HasIndex(x => x.UserId)
                       .IsUnique();
+                entity.HasQueryFilter(x => !x.IsDeleted);
+
+                entity.HasMany(p => p.DeliveryAddresses)
+                    .WithOne(a => a.UserProfile)
+                   .HasForeignKey(a => a.UserProfileId)
+                   .IsRequired();   
+            });
+
+
+            modelBuilder.Entity<DeliveryAddress>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+
 
                 entity.HasQueryFilter(x => !x.IsDeleted);
             });

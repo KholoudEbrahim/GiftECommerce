@@ -9,6 +9,8 @@ namespace OrderService.Features.Commands.ReOrder
         public string OriginalOrderNumber { get; init; } = default!;
         public OrderStatus Status { get; init; }
         public decimal SubTotal { get; init; }
+        public PaymentMethod PaymentMethod { get; init; }  
+        public PaymentStatus PaymentStatus { get; init; }
         public decimal DeliveryFee { get; init; }
         public decimal Tax { get; init; }
         public decimal Total { get; init; }

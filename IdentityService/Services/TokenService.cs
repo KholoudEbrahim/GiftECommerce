@@ -28,35 +28,45 @@ namespace IdentityService.Services
 
         public string GenerateJwtToken(User user)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Secret"]
+            var key = Encoding.ASCII.GetBytes(
+                _configuration["Jwt:Secret"]
                 ?? throw new InvalidOperationException("JWT Secret not configured"));
 
             var claims = new List<Claim>
-            {
-                new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new(JwtRegisteredClaimNames.Email, user.Email),
-                new(JwtRegisteredClaimNames.GivenName, user.FirstName),
-                new(JwtRegisteredClaimNames.FamilyName, user.LastName),
-                new(ClaimTypes.Role, user.Role),
-                new("email_verified", user.EmailVerified.ToString().ToLower())
-            };
+    {
+        new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+        new(JwtRegisteredClaimNames.Email, user.Email),
+        new(JwtRegisteredClaimNames.GivenName, user.FirstName),
+        new(JwtRegisteredClaimNames.FamilyName, user.LastName),
+        new(ClaimTypes.Role, user.Role),
+        new("email_verified", user.EmailVerified.ToString().ToLower())
+    };
 
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddMinutes(Convert.ToDouble(
-                    _configuration["Jwt:TokenExpirationMinutes"] ?? "15")),
-                SigningCredentials = new SigningCredentials(
-                    new SymmetricSecurityKey(key),
-                    SecurityAlgorithms.HmacSha256Signature),
-                Issuer = _configuration["Jwt:Issuer"],
-                Audience = _configuration["Jwt:Audience"]
-            };
+            var creds = new SigningCredentials(
+                new SymmetricSecurityKey(key),
+                SecurityAlgorithms.HmacSha256);
 
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+            var audiences = _configuration
+                .GetSection("Jwt:Audiences")
+                .Get<string[]>()
+                ?? throw new InvalidOperationException("JWT Audiences not configured");
+
+            foreach (var aud in audiences)
+            {
+                claims.Add(new Claim(JwtRegisteredClaimNames.Aud, aud));
+            }
+
+            var token = new JwtSecurityToken(
+         issuer: _configuration["Jwt:Issuer"],
+         claims: claims,
+         expires: DateTime.UtcNow.AddMinutes(
+             Convert.ToDouble(_configuration["Jwt:TokenExpirationMinutes"] ?? "15")),
+         signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
 
         public string GenerateRefreshToken()
         {

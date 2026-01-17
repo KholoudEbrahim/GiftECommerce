@@ -5,10 +5,11 @@ using OrderService.Models.enums;
 namespace OrderService.Features.Queries.GetOrders
 {
     public record GetOrdersQuery(
-      Guid UserId,
-      bool? ActiveOnly = null,
-      int Page = 1,
-      int PageSize = 20) : IRequest<GetOrdersResultDto>;
+       Guid UserId,
+       bool? ActiveOnly = null,
+       int Page = 1,
+       int PageSize = 20
+   ) : IRequest<GetOrdersResultDto>;
 
     public class GetOrdersQueryHandler : IRequestHandler<GetOrdersQuery, GetOrdersResultDto>
     {
@@ -23,34 +24,42 @@ namespace OrderService.Features.Queries.GetOrders
             _logger = logger;
         }
 
-        public async Task<GetOrdersResultDto> Handle(GetOrdersQuery request, CancellationToken cancellationToken)
+        public async Task<GetOrdersResultDto> Handle(
+            GetOrdersQuery request,
+            CancellationToken cancellationToken)
         {
             try
             {
-                var orders = await _orderRepository.GetUserOrdersAsync(
+                var (orders, totalCount) = await _orderRepository.GetUserOrdersPagedAsync(
                     request.UserId,
                     request.ActiveOnly,
+                    request.Page,
+                    request.PageSize,
                     cancellationToken
                 );
 
-                var totalCount = orders.Count();
-                var pagedOrders = orders
-                    .Skip((request.Page - 1) * request.PageSize)
-                    .Take(request.PageSize)
-                    .ToList();
+                var orderList = orders.ToList();
+                var orderDtos = orderList.Select(MapToDto).ToList();
 
-                var orderDtos = pagedOrders.Select(MapToDto).ToList();
 
                 var activeOrders = orderDtos
-                    .Where(o => o.Status != OrderStatus.Delivered && o.Status != OrderStatus.Cancelled)
+                    .Where(o =>
+                        o.Status != OrderStatus.Delivered &&
+                        o.Status != OrderStatus.Cancelled &&
+                        o.Status != OrderStatus.Failed)
                     .ToList();
 
                 var completedOrders = orderDtos
-                    .Where(o => o.Status == OrderStatus.Delivered || o.Status == OrderStatus.Cancelled)
+                    .Where(o =>
+                        o.Status == OrderStatus.Delivered ||
+                        o.Status == OrderStatus.Cancelled ||
+                        o.Status == OrderStatus.Failed)
                     .ToList();
 
-                _logger.LogInformation("Retrieved {Count} orders for user {UserId}",
-                    orderDtos.Count, request.UserId);
+                _logger.LogInformation(
+                    "Retrieved {Count} orders for user {UserId} (Page {Page}/{TotalPages})",
+                    orderDtos.Count, request.UserId, request.Page,
+                    (int)Math.Ceiling(totalCount / (double)request.PageSize));
 
                 return new GetOrdersResultDto
                 {
@@ -69,7 +78,7 @@ namespace OrderService.Features.Queries.GetOrders
             }
         }
 
-        private OrderSummaryDto MapToDto(Models.Order order)
+        private static OrderSummaryDto MapToDto(Models.Order order)
         {
             return new OrderSummaryDto
             {
@@ -78,20 +87,22 @@ namespace OrderService.Features.Queries.GetOrders
                 Status = order.Status,
                 PaymentMethod = order.PaymentMethod,
                 Total = order.Total,
-                ItemCount = order.Items.Count,
+                ItemCount = order.Items?.Count ?? 0,
                 CreatedAt = order.CreatedAt,
                 UpdatedAt = order.UpdatedAt,
-                Items = order.Items.Take(3).Select(i => new OrderItemSummaryDto
-                {
-                    ProductId = i.ProductId,
-                    ProductName = i.ProductName,
-                    Quantity = i.Quantity,
-                    UnitPrice = i.UnitPrice,
-                    ImageUrl = i.ImageUrl
-                }).ToList(),
-                DeliveryDate = order.Delivery?.ActualDeliveryTime
+                DeliveryDate = order.Delivery?.ActualDeliveryTime,
+                Items = order.Items?
+                    .Take(3)
+                    .Select(i => new OrderItemSummaryDto
+                    {
+                        ProductId = i.ProductId,
+                        ProductName = i.ProductName,
+                        Quantity = i.Quantity,
+                        UnitPrice = i.UnitPrice,
+                        ImageUrl = i.ImageUrl
+                    })
+                    .ToList() ?? new List<OrderItemSummaryDto>()
             };
         }
     }
-
 }

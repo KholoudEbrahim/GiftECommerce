@@ -138,6 +138,36 @@ namespace OrderService.Events.Publisher
                 return null;
             }
         }
+
+        public async Task PublishRefundCompletedAsync(
+                   Order order,
+                   Payment payment,
+                   string refundId,
+                  decimal refundAmount,
+                  string reason,
+                 CancellationToken cancellationToken = default)
+         {
+            var refundEvent = new RefundCompletedEvent
+            {
+                OrderId = order.Id,
+                OrderNumber = order.OrderNumber,
+                UserId = order.UserId,
+                RefundAmount = refundAmount,
+                RefundId = refundId,
+                Reason = reason,
+                RefundedAt = DateTime.UtcNow,
+                ItemsToRestock = order.Items.Select(i => new InventoryItem
+                {
+                    ProductId = i.ProductId,
+                    Quantity = i.Quantity
+                }).ToList()
+            };
+
+            await _publishEndpoint.Publish(refundEvent, cancellationToken);
+            _logger.LogInformation(
+                "Published RefundCompletedEvent for order {OrderNumber}, refund amount: {Amount}",
+                order.OrderNumber, refundAmount);
+        }
     }
     
 
