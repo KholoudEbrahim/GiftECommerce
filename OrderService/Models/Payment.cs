@@ -17,6 +17,10 @@ namespace OrderService.Models
         public string? StripePaymentIntentId { get; private set; }
         public string? StripeCustomerId { get; private set; }
         public string? CardLastFour { get; private set; }
+        public string? RefundId { get; private set; }
+        public decimal? RefundAmount { get; private set; }
+        public DateTime? RefundedAt { get; private set; }
+        public string? RefundReason { get; private set; }
 
         // Navigation
         public Order Order { get; private set; } = default!;
@@ -93,6 +97,35 @@ namespace OrderService.Models
             TransactionId = transactionId ?? $"COD-VERIFIED-{Guid.NewGuid()}";
             PaidAt = DateTime.UtcNow;
             UpdatedAt = DateTime.UtcNow;
+        }
+        public void MarkAsRefunded(string refundId, decimal refundAmount, string? reason = null)
+        {
+            if (Status != PaymentStatus.Completed)
+                throw new InvalidOperationException("Only completed payments can be refunded");
+
+            Status = PaymentStatus.Refunded;
+            RefundId = refundId;
+            RefundAmount = refundAmount;
+            RefundReason = reason;
+            RefundedAt = DateTime.UtcNow;
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void MarkAsPartiallyRefunded(string refundId, decimal refundAmount, string? reason = null)
+        {
+            if (Status != PaymentStatus.Completed && Status != PaymentStatus.Refunded)
+                throw new InvalidOperationException("Invalid payment status for partial refund");
+
+            RefundId = refundId;
+            RefundAmount = (RefundAmount ?? 0) + refundAmount;
+            RefundReason = reason;
+            RefundedAt = DateTime.UtcNow;
+            UpdatedAt = DateTime.UtcNow;
+
+            if (RefundAmount >= Amount)
+            {
+                Status = PaymentStatus.Refunded;
+            }
         }
     }
 }

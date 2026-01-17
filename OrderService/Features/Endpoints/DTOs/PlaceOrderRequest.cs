@@ -6,7 +6,6 @@ namespace OrderService.Features.Endpoints.DTOs
     {
         public required Guid DeliveryAddressId { get; init; }
         public required PaymentMethod PaymentMethod { get; init; }
-        public Guid? CartId { get; init; }
         public string? Notes { get; init; }
     }
 }

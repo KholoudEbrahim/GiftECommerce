@@ -74,6 +74,38 @@ namespace OrderService.Data.Configurations
 
             builder.Property(p => p.IsActive)
                 .HasDefaultValue(true);
+            builder.Property(p => p.RefundId)
+           .IsRequired(false)
+             .HasMaxLength(100);
+
+            builder.Property(p => p.RefundAmount)
+                .HasPrecision(18, 2)
+                .IsRequired(false);
+
+            builder.Property(p => p.RefundedAt)
+                .IsRequired(false);
+
+            builder.Property(p => p.RefundReason)
+                .IsRequired(false)
+                .HasMaxLength(500);
+
+            builder.HasIndex(p => p.OrderId)
+              .IsUnique()
+             .HasDatabaseName("IX_Payments_OrderId");
+
+            builder.HasIndex(p => p.StripePaymentIntentId)
+                .HasDatabaseName("IX_Payments_StripePaymentIntentId")
+                .HasFilter("[StripePaymentIntentId] IS NOT NULL");
+
+            builder.HasIndex(p => p.TransactionId)
+                .HasDatabaseName("IX_Payments_TransactionId")
+                .HasFilter("[TransactionId] IS NOT NULL");
+
+            builder.HasIndex(p => p.Status)
+                .HasDatabaseName("IX_Payments_Status");
+
+  
+            builder.HasQueryFilter(p => !p.IsDeleted && p.IsActive);
         }
     }
 }

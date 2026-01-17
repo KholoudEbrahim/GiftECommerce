@@ -11,6 +11,12 @@ namespace OrderService.Data
         Task<Order?> GetOrderWithDetailsAsync(int orderId, CancellationToken cancellationToken = default);
         Task<Order?> GetOrderWithDetailsAsync(string orderNumber, CancellationToken cancellationToken = default);
         Task<IEnumerable<Order>> GetUserOrdersAsync(Guid userId, bool? activeOnly = null, CancellationToken cancellationToken = default);
+        Task<(IEnumerable<Order> Orders, int TotalCount)> GetUserOrdersPagedAsync(
+              Guid userId,
+            bool? activeOnly,
+             int page,
+           int pageSize,
+            CancellationToken cancellationToken = default);
         Task<IEnumerable<Order>> GetOrdersByStatusAsync(OrderStatus status, CancellationToken cancellationToken = default);
         Task<Order?> GetActiveCartOrderAsync(Guid userId, CancellationToken cancellationToken = default);
 
@@ -25,6 +31,13 @@ namespace OrderService.Data
         Task<Payment?> GetPaymentByOrderIdAsync(int orderId, CancellationToken cancellationToken = default);
         Task AddPaymentAsync(Payment payment, CancellationToken cancellationToken = default);
         Task UpdatePaymentAsync(Payment payment, CancellationToken cancellationToken = default);
+        Task<Order?> GetOrderByPaymentIntentIdAsync(
+                string paymentIntentId,
+                    CancellationToken cancellationToken = default);
+
+        Task<Order?> GetOrderByChargeIdAsync(
+            string chargeId,
+            CancellationToken cancellationToken = default);
 
         // Rating operations
         Task AddRatingAsync(Rating rating, CancellationToken cancellationToken = default);

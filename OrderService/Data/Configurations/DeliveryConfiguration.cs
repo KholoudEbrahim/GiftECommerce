@@ -70,6 +70,18 @@ namespace OrderService.Data.Configurations
 
             builder.Property(d => d.IsActive)
                 .HasDefaultValue(true);
+            builder.HasIndex(d => d.OrderId)
+           .IsUnique()
+           .HasDatabaseName("IX_Deliveries_OrderId");
+
+            builder.HasIndex(d => d.DeliveryHeroId)
+                .HasDatabaseName("IX_Deliveries_DeliveryHeroId");
+
+            builder.HasIndex(d => d.Status)
+                .HasDatabaseName("IX_Deliveries_Status");
+
+   
+            builder.HasQueryFilter(d => !d.IsDeleted && d.IsActive);
         }
     }
 }

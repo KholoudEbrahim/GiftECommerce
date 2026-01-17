@@ -223,10 +223,8 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<CartDbContext>();
-    dbContext.Database.Migrate();
-} 
-
-await ApplyMigrationsAsync(app.Services);
+    await dbContext.Database.MigrateAsync();
+}
 
 app.UseExceptionHandler();
 
@@ -246,10 +244,3 @@ app.MapHealthChecks("/health");
 
 // Run the app
 await app.RunAsync();
-
-static async Task ApplyMigrationsAsync(IServiceProvider serviceProvider)
-{
-    using var scope = serviceProvider.CreateScope();
-    var dbContext = scope.ServiceProvider.GetRequiredService<CartDbContext>();
-    await dbContext.Database.MigrateAsync();
-}

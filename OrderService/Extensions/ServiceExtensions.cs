@@ -3,6 +3,7 @@ using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OrderService.Data;
 using OrderService.Events.Publisher;
@@ -23,6 +24,7 @@ using OrderService.Services.Payment;
 using OrderService.Services.TemporaryOrder;
 using OrderService.Services.UserProfile;
 using Stripe;
+using System.Text;
 using System.Text.Json.Serialization;
 
 namespace OrderService.Extensions
@@ -141,7 +143,7 @@ namespace OrderService.Extensions
             services.AddHttpClient<ICartServiceClient, CartServiceClient>((sp, client) =>
             {
                 var settings = sp.GetRequiredService<IOptions<ExternalServicesSettings>>().Value;
-                client.Timeout = TimeSpan.FromSeconds(settings.TimeoutInSeconds);
+                client.Timeout = TimeSpan.FromSeconds(60);
                 client.DefaultRequestHeaders.Add("User-Agent", "OrderService");
             })
             .AddPolicyHandler(HttpClientExtensions.GetRetryPolicy())
@@ -168,23 +170,33 @@ namespace OrderService.Extensions
             return services;
         }
 
-        public static IServiceCollection AddAuthenticationServices(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddAuthenticationServices(
+         this IServiceCollection services,
+         IConfiguration configuration)
         {
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
-                    options.Authority = configuration["Jwt:Authority"];
-                    options.Audience = configuration["Jwt:Audience"];
-                    options.RequireHttpsMetadata = bool.Parse(configuration["Jwt:RequireHttpsMetadata"] ?? "false");
+                    options.RequireHttpsMetadata = false;
 
-                    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                    options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
+                        ValidIssuer = configuration["Jwt:Issuer"],
+
                         ValidateAudience = true,
+                        ValidAudiences = new[]
+                        {
+                    "order-service",
+                    "cart-service"
+                        },
+
                         ValidateLifetime = true,
+                        ClockSkew = TimeSpan.FromMinutes(2),
+
                         ValidateIssuerSigningKey = true,
-                        ValidIssuer = configuration["Jwt:Authority"],
-                        ValidAudience = configuration["Jwt:Audience"]
+                        IssuerSigningKey = new SymmetricSecurityKey(
+                            Encoding.ASCII.GetBytes(configuration["Jwt:Secret"]))
                     };
                 });
 

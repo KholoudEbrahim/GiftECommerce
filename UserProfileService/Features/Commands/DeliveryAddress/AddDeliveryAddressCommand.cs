@@ -7,18 +7,19 @@ using UserProfileService.Features.Shared;
 namespace UserProfileService.Features.Commands.DeliveryAddress
 {
     public record AddDeliveryAddressCommand(
-         Guid UserId,
-         string Alias,
-         string Street,
-         string City,
-         string Governorate,
-         string Building,
-         string? Floor,
-         string? Apartment,
-         bool IsPrimary
+          Guid UserId,
+          string Alias,
+          string Street,
+          string City,
+          string Governorate,
+          string Building,
+          string? Floor,
+          string? Apartment,
+          bool IsPrimary
       ) : IRequest<ApiResponse<DeliveryAddressResponse>>
     {
-        public class Handler : IRequestHandler<AddDeliveryAddressCommand, ApiResponse<DeliveryAddressResponse>>
+        public class Handler
+            : IRequestHandler<AddDeliveryAddressCommand, ApiResponse<DeliveryAddressResponse>>
         {
             private readonly IUserProfileRepository _repository;
             private readonly ILogger<Handler> _logger;
@@ -32,17 +33,30 @@ namespace UserProfileService.Features.Commands.DeliveryAddress
             }
 
             public async Task<ApiResponse<DeliveryAddressResponse>> Handle(
-                      AddDeliveryAddressCommand request,
-                       CancellationToken cancellationToken)
+                AddDeliveryAddressCommand request,
+                CancellationToken cancellationToken)
             {
                 try
                 {
-                    var userProfile = await UserProfileFactory.GetOrCreateAsync(
-                        request.UserId,
-                        _repository,
-                        cancellationToken);
+     
+                    var userProfile = await _repository
+                        .GetByUserIdAsync(request.UserId, cancellationToken);
 
-                    var address = userProfile.AddDeliveryAddress(
+                    if (userProfile == null)
+                    {
+                        return ApiResponse<DeliveryAddressResponse>
+                            .Failure("Profile not found");
+                    }
+
+        
+                    if (request.IsPrimary)
+                    {
+                        await _repository
+                            .UnsetPrimaryAddressesAsync(userProfile.Id, cancellationToken);
+                    }
+
+                    var address = new Models.DeliveryAddress(
+                        userProfile.Id,
                         request.Alias,
                         request.Street,
                         request.City,
@@ -50,16 +64,21 @@ namespace UserProfileService.Features.Commands.DeliveryAddress
                         request.Building,
                         request.Floor,
                         request.Apartment,
-                        request.IsPrimary);
+                        request.IsPrimary
+                    );
 
+            
+                    await _repository.AddAddressAsync(address, cancellationToken);
 
+                
                     await _repository.SaveChangesAsync(cancellationToken);
 
-                    return ApiResponse<DeliveryAddressResponse>.Success(new DeliveryAddressResponse
-                    {
-                        AddressId = address.Id,
-                        CreatedAt = address.CreatedAt
-                    });
+                    return ApiResponse<DeliveryAddressResponse>.Success(
+                        new DeliveryAddressResponse
+                        {
+                            AddressId = address.Id,
+                            CreatedAt = address.CreatedAt
+                        });
                 }
                 catch (DbUpdateConcurrencyException ex)
                 {
@@ -73,7 +92,8 @@ namespace UserProfileService.Features.Commands.DeliveryAddress
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex,
+                    _logger.LogError(
+                        ex,
                         "Unexpected error while adding delivery address for user {UserId}",
                         request.UserId);
 
@@ -83,5 +103,4 @@ namespace UserProfileService.Features.Commands.DeliveryAddress
             }
         }
     }
-
 }

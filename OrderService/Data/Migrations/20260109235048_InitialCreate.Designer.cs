@@ -12,7 +12,7 @@ using OrderService.Data;
 namespace OrderService.Migrations
 {
     [DbContext(typeof(OrderDbContext))]
-    [Migration("20251226224612_InitialCreate")]
+    [Migration("20260109235048_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -81,7 +81,7 @@ namespace OrderService.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("TrackingUrl")
                         .HasMaxLength(500)
@@ -92,8 +92,15 @@ namespace OrderService.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("DeliveryHeroId")
+                        .HasDatabaseName("IX_Deliveries_DeliveryHeroId");
+
                     b.HasIndex("OrderId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("IX_Deliveries_OrderId");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("IX_Deliveries_Status");
 
                     b.ToTable("Deliveries", (string)null);
                 });
@@ -106,8 +113,8 @@ namespace OrderService.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<Guid?>("CartId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("CartId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -181,10 +188,25 @@ namespace OrderService.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrderNumber")
-                        .IsUnique();
+                    b.HasIndex("CartId")
+                        .HasDatabaseName("IX_Orders_CartId")
+                        .HasFilter("[CartId] IS NOT NULL");
 
-                    b.HasIndex("UserId", "Status");
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("IX_Orders_CreatedAt");
+
+                    b.HasIndex("OrderNumber")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Orders_OrderNumber");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("IX_Orders_Status");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_Orders_UserId");
+
+                    b.HasIndex("UserId", "Status")
+                        .HasDatabaseName("IX_Orders_UserId_Status");
 
                     b.ToTable("Orders", (string)null);
                 });
@@ -227,16 +249,6 @@ namespace OrderService.Migrations
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
-
-                    b.Property<DateTime?>("RatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("Rating")
-                        .HasColumnType("int");
-
-                    b.Property<string>("RatingComment")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<decimal>("UnitPrice")
                         .HasPrecision(18, 2)
@@ -302,9 +314,24 @@ namespace OrderService.Migrations
                     b.Property<string>("PaymentGatewayResponse")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal?>("RefundAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("RefundId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("RefundReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("RefundedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("StripeCustomerId")
                         .HasMaxLength(100)
@@ -324,7 +351,19 @@ namespace OrderService.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("OrderId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("IX_Payments_OrderId");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("IX_Payments_Status");
+
+                    b.HasIndex("StripePaymentIntentId")
+                        .HasDatabaseName("IX_Payments_StripePaymentIntentId")
+                        .HasFilter("[StripePaymentIntentId] IS NOT NULL");
+
+                    b.HasIndex("TransactionId")
+                        .HasDatabaseName("IX_Payments_TransactionId")
+                        .HasFilter("[TransactionId] IS NOT NULL");
 
                     b.ToTable("Payments", (string)null);
                 });

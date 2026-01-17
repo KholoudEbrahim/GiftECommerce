@@ -83,6 +83,28 @@ namespace OrderService.Data.Configurations
 
             builder.Property(o => o.IsActive)
                 .HasDefaultValue(true);
+
+            builder.HasIndex(o => o.OrderNumber)
+             .IsUnique()
+             .HasDatabaseName("IX_Orders_OrderNumber");
+
+            builder.HasIndex(o => o.UserId)
+                .HasDatabaseName("IX_Orders_UserId");
+
+            builder.HasIndex(o => new { o.UserId, o.Status })
+                .HasDatabaseName("IX_Orders_UserId_Status");
+
+            builder.HasIndex(o => o.Status)
+                .HasDatabaseName("IX_Orders_Status");
+
+            builder.HasIndex(o => o.CreatedAt)
+                .HasDatabaseName("IX_Orders_CreatedAt");
+
+            builder.HasIndex(o => o.CartId)
+                .HasDatabaseName("IX_Orders_CartId")
+                .HasFilter("[CartId] IS NOT NULL");
+
+            builder.HasQueryFilter(o => !o.IsDeleted && o.IsActive);
         }
     }
 }
