@@ -37,7 +37,7 @@ services:
   # ============================================
   gateway:
     user: root
-    image: giftshop90/giftshop:api_t1-gateway-202512292042
+    image: giftshop90/giftshop:api_t1-gateway-202601170339
     deploy:
       replicas: 1
       resources:
@@ -81,7 +81,7 @@ services:
   # ============================================
   identityservice:
     user: root
-    image: giftshop90/giftshop:api_t1-identity-202512292042
+    image: giftshop90/giftshop:api_t1-identity-202601170339
     deploy:
       replicas: 1
       resources:
@@ -131,7 +131,7 @@ services:
   # ============================================
   categoryservice:
     user: root
-    image: giftshop90/giftshop:api_t1-category-202512292042
+    image: giftshop90/giftshop:api_t1-category-202601170339
     deploy:
       replicas: 1
       resources:
@@ -177,7 +177,7 @@ services:
   # ============================================
   inventoryservice:
     user: root
-    image: giftshop90/giftshop:api_t1-inventory-202512292042
+    image: giftshop90/giftshop:api_t1-inventory-202601170339
     deploy:
       replicas: 1
       resources:
@@ -221,7 +221,7 @@ services:
   # ============================================
   cartservice:
     user: root
-    image: giftshop90/giftshop:api_t1-cart-202512292042
+    image: giftshop90/giftshop:api_t1-cart-202601170339
     deploy:
       replicas: 1
       resources:
@@ -272,7 +272,7 @@ services:
   # ============================================
   orderservice:
     user: root
-    image: giftshop90/giftshop:api_t1-order-202512292042
+    image: giftshop90/giftshop:api_t1-order-202601170339
     deploy:
       replicas: 1
       resources:
@@ -330,7 +330,7 @@ services:
   # ============================================
   userprofileservice:
     user: root
-    image: giftshop90/giftshop:api_t1-profile-202512292042
+    image: giftshop90/giftshop:api_t1-profile-202601170339
     deploy:
       replicas: 1
       resources:
@@ -378,7 +378,7 @@ services:
   # ============================================
   offerservice:
     user: root
-    image: giftshop90/giftshop:api_t1-offer-202512292042
+    image: giftshop90/giftshop:api_t1-offer-202601170339
     deploy:
       replicas: 1
       resources:
@@ -421,7 +421,7 @@ services:
   # ============================================
   notificationservice:
     user: root
-    image: giftshop90/giftshop:api_t1-notification-202512292042
+    image: giftshop90/giftshop:api_t1-notification-202601170339
     deploy:
       replicas: 1
       resources:
