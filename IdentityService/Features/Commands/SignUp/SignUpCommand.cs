@@ -42,12 +42,11 @@ public record SignUpCommand(
         }
 
         public async Task<RequestResponse<SignUpResponseDto>> Handle(
-            SignUpCommand request,
-            CancellationToken cancellationToken)
+       SignUpCommand request,
+       CancellationToken cancellationToken)
         {
             try
             {
-
                 var validationResult = await _validator.ValidateAsync(request, cancellationToken);
                 if (!validationResult.IsValid)
                 {
@@ -55,67 +54,58 @@ public record SignUpCommand(
                     return RequestResponse<SignUpResponseDto>.Fail(errorMessages, 400);
                 }
 
-                if (await _repository.EmailExistsAsync(request.Email))
-                {
-                    return RequestResponse<SignUpResponseDto>.Fail("Email already registered", 409);
-                }
+                var normalizedEmail = request.Email.Trim().ToLower();
+                var normalizedPhone = request.Phone.Trim();
 
-                if (await _repository.PhoneExistsAsync(request.Phone))
-                {
+                if (await _repository.EmailExistsAsync(normalizedEmail))
+                    return RequestResponse<SignUpResponseDto>.Fail("Email already registered", 409);
+
+                if (await _repository.PhoneExistsAsync(normalizedPhone))
                     return RequestResponse<SignUpResponseDto>.Fail("Phone number already registered", 409);
-                }
 
                 var user = new User
                 {
                     FirstName = request.FirstName.Trim(),
                     LastName = request.LastName.Trim(),
-                    Email = request.Email.ToLower().Trim(),
+                    Email = normalizedEmail,
                     PasswordHash = _passwordService.HashPassword(request.Password),
-                    Phone = request.Phone.Trim(),
-                    Gender = request.Gender.Trim(),
+                    Phone = normalizedPhone,
+                    Gender = request.Gender.Trim().ToLower(),
                     Role = "User",
                     EmailVerified = false,
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow
                 };
 
-
                 var createdUser = await _repository.CreateAsync(user);
-
 
                 try
                 {
                     await _userEventPublisher.PublishUserCreatedEventAsync(createdUser, cancellationToken);
-                    _logger.LogInformation(" UserCreatedEvent published via UserEventPublisher for: {Email}", createdUser.Email);
                 }
                 catch (Exception ex)
                 {
-           
-                    _logger.LogWarning(ex, " Failed to publish UserCreatedEvent via UserEventPublisher for {Email}. Signup still successful.", createdUser.Email);
+                    _logger.LogWarning(ex, "Event publish failed for {Email}", createdUser.Email);
                 }
 
-        
-                var responseDto = new SignUpResponseDto
-                {
-                    UserId = createdUser.Id,
-                    Email = createdUser.Email,
-                    FirstName = createdUser.FirstName,
-                    LastName = createdUser.LastName
-                };
-
-                _logger.LogInformation(" User registered successfully: {Email}", createdUser.Email);
-
                 return RequestResponse<SignUpResponseDto>.Success(
-                    responseDto,
-                    "Registration successful. Please login.",
+                    new SignUpResponseDto
+                    {
+                        UserId = createdUser.Id,
+                        Email = createdUser.Email,
+                        FirstName = createdUser.FirstName,
+                        LastName = createdUser.LastName
+                    },
+                    "Registration successful",
                     201
                 );
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, " Error during user registration for email: {Email}", request.Email);
+                _logger.LogError(ex, "Signup failed for {Email}", request.Email);
                 return RequestResponse<SignUpResponseDto>.Fail("An error occurred during registration", 500);
             }
         }
+
     }
 }

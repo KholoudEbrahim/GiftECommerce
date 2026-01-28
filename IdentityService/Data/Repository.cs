@@ -61,18 +61,20 @@ namespace IdentityService.Data
             await _context.SaveChangesAsync();
             return user;
         }
-
         public async Task<bool> EmailExistsAsync(string email)
         {
             return await _context.Users
-                .AnyAsync(u => u.Email.ToLower() == email.ToLower());
+                .AsNoTracking()
+                .AnyAsync(u => u.Email == email);
         }
 
         public async Task<bool> PhoneExistsAsync(string phone)
         {
             return await _context.Users
+                .AsNoTracking()
                 .AnyAsync(u => u.Phone == phone);
         }
+
         public async Task<PasswordResetRequest> CreatePasswordResetRequestAsync(PasswordResetRequest request)
         {
             try
