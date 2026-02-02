@@ -4,6 +4,7 @@ using IdentityService.Features.Shared;
 using IdentityService.Models;
 using IdentityService.Services;
 using MediatR;
+using Microsoft.Extensions.Configuration;
 
 namespace IdentityService.Features.Commands.PasswordReset.RequestPasswordReset
 {
@@ -22,17 +23,19 @@ namespace IdentityService.Features.Commands.PasswordReset.RequestPasswordReset
         private readonly IEmailService _emailService;
         private readonly IValidator<RequestPasswordResetCommand> _validator;
         private readonly ILogger<RequestPasswordResetCommandHandler> _logger;
-
+        private readonly IConfiguration _configuration;
         public RequestPasswordResetCommandHandler(
             IRepository repository,
             IEmailService emailService,
             IValidator<RequestPasswordResetCommand> validator,
-            ILogger<RequestPasswordResetCommandHandler> logger)
+            ILogger<RequestPasswordResetCommandHandler> logger,
+            IConfiguration configuration)
         {
             _repository = repository;
             _emailService = emailService;
             _validator = validator;
             _logger = logger;
+            _configuration = configuration;
         }
 
         public async Task<RequestResponse<RequestPasswordResetResponseDto>> Handle(
@@ -64,8 +67,13 @@ namespace IdentityService.Features.Commands.PasswordReset.RequestPasswordReset
                     );
                 }
 
-                var resetCode = GenerateResetCode();
-                var expiresAt = DateTime.UtcNow.AddMinutes(15);
+                var resetCode = ResetCodeGenerator.Generate(
+                 _configuration.GetValue<int>("PasswordReset:CodeLength")
+                                 );
+
+                var expiresAt = DateTime.UtcNow.AddMinutes(
+                                _configuration.GetValue<int>("PasswordReset:CodeExpirationMinutes")
+                            );
 
                 var resetRequest = new PasswordResetRequest
                 {
@@ -80,7 +88,17 @@ namespace IdentityService.Features.Commands.PasswordReset.RequestPasswordReset
 
                 await _repository.CreatePasswordResetRequestAsync(resetRequest);
 
-                await _emailService.SendPasswordResetEmailAsync(request.Email, resetCode);
+                try
+                {
+                    await _emailService.SendPasswordResetEmailAsync(request.Email, resetCode);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,
+                        "Email sending failed for {Email}. Reset code is still valid.",
+                        request.Email);
+                }
+
 
                 _logger.LogInformation("Password reset code generated for {Email}", request.Email);
 
@@ -103,11 +121,7 @@ namespace IdentityService.Features.Commands.PasswordReset.RequestPasswordReset
             }
         }
 
-        private static string GenerateResetCode()
-        {
-            var random = new Random();
-            return random.Next(100000, 999999).ToString();
-        }
+
     }
 
 }

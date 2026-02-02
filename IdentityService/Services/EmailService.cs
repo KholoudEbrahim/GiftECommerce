@@ -1,5 +1,9 @@
-﻿using System.Net;
-using System.Net.Mail;
+﻿using MailKit.Security;
+using MimeKit;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
+
 
 namespace IdentityService.Services
 {
@@ -7,54 +11,59 @@ namespace IdentityService.Services
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger<EmailService> _logger;
+        private readonly IWebHostEnvironment _environment;
 
-        public EmailService(IConfiguration configuration, ILogger<EmailService> logger)
+        public EmailService(
+            IConfiguration configuration,
+            ILogger<EmailService> logger,
+            IWebHostEnvironment environment)
         {
             _configuration = configuration;
             _logger = logger;
+            _environment = environment;
         }
 
         public async Task SendPasswordResetEmailAsync(string email, string resetCode)
         {
+            var settings = _configuration.GetSection("EmailSettings");
+
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(settings["FromName"], settings["FromAddress"]));
+            message.To.Add(MailboxAddress.Parse(email));
+            message.Subject = "Password Reset Code";
+            message.Body = new BodyBuilder
+            {
+                HtmlBody = $"""
+        <h2>Password Reset</h2>
+        <p>Your reset code is:</p>
+        <h1>{resetCode}</h1>
+        <p>This code will expire in 15 minutes.</p>
+        """
+            }.ToMessageBody();
+
+            using var client = new SmtpClient();
+
+   
+            client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+
             try
             {
-                
-                var emailSettings = _configuration.GetSection("EmailSettings");
+                await client.ConnectAsync(
+                    settings["SmtpServer"],
+                    int.Parse(settings["SmtpPort"]!),
+                    settings["SmtpPort"] == "465" ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls
+                );
 
-                using var client = new SmtpClient(emailSettings["SmtpServer"])
-                {
-                    Port = int.Parse(emailSettings["SmtpPort"]!),
-                    Credentials = new NetworkCredential(
-                        emailSettings["SmtpUsername"],
-                        emailSettings["SmtpPassword"]
-                    ),
-                    EnableSsl = bool.Parse(emailSettings["EnableSsl"] ?? "true")
-                };
+                await client.AuthenticateAsync(
+                    settings["SmtpUsername"],
+                    settings["SmtpPassword"] 
+                );
 
-                var mailMessage = new MailMessage
-                {
-                    From = new MailAddress(
-                        emailSettings["FromAddress"]!,
-                        emailSettings["FromName"]
-                    ),
-                    Subject = "Password Reset Request",
-                    Body = $@"
-                <h3>Password Reset Request</h3>
-                <p>Your password reset code is: <strong>{resetCode}</strong></p>
-                <p>This code will expire in 15 minutes.</p>
-                <p>If you didn't request this, please ignore this email.</p>
-            ",
-                    IsBodyHtml = true
-                };
-                mailMessage.To.Add(email);
-
-                await client.SendMailAsync(mailMessage);
-                _logger.LogInformation("Password reset email sent to {Email}", email);
+                await client.SendAsync(message);
             }
-            catch (Exception ex)
+            finally
             {
-                _logger.LogError(ex, "Failed to send password reset email to {Email}", email);
-                throw;
+                await client.DisconnectAsync(true);
             }
         }
     }
