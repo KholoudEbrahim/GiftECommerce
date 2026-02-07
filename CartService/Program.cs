@@ -177,18 +177,7 @@ builder.Services.AddMediatR(cfg =>
 // Add FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<Program>(ServiceLifetime.Scoped);
 
-// Add CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowFrontend", policy =>
-    {
-        var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
-        policy.WithOrigins(allowedOrigins)
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
-    });
-});
+
 
 // Add health checks
 builder.Services.AddHealthChecks()
