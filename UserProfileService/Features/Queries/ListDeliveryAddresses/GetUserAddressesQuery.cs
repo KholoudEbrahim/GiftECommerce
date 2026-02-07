@@ -5,9 +5,9 @@ using UserProfileService.Features.Shared;
 namespace UserProfileService.Features.Queries.ListDeliveryAddresses
 {
     public record GetUserAddressesQuery(
-         Guid UserId,
-         int PageNumber = 1,
-         int PageSize = 10) : IRequest<ApiResponse<PaginatedResponse<AddressDto>>>;
+        Guid UserId,
+        int PageNumber = 1,
+        int PageSize = 10) : IRequest<ApiResponse<PaginatedResponse<AddressDto>>>;
 
     public class GetUserAddressesQueryHandler : IRequestHandler<GetUserAddressesQuery, ApiResponse<PaginatedResponse<AddressDto>>>
     {
@@ -28,7 +28,6 @@ namespace UserProfileService.Features.Queries.ListDeliveryAddresses
         {
             try
             {
-             
                 if (request.PageNumber < 1)
                 {
                     return ApiResponse<PaginatedResponse<AddressDto>>.Failure("Page number must be greater than 0");
@@ -39,7 +38,6 @@ namespace UserProfileService.Features.Queries.ListDeliveryAddresses
                     return ApiResponse<PaginatedResponse<AddressDto>>.Failure("Page size must be between 1 and 100");
                 }
 
-              
                 var userProfile = await _userProfileRepository.GetByUserIdAsync(request.UserId, cancellationToken);
 
                 if (userProfile == null)
@@ -47,11 +45,13 @@ namespace UserProfileService.Features.Queries.ListDeliveryAddresses
                     return ApiResponse<PaginatedResponse<AddressDto>>.Failure("User profile not found");
                 }
 
+   
                 var activeAddresses = userProfile.DeliveryAddresses
                     .Where(a => !a.IsDeleted)
                     .ToList();
 
-               
+                _logger.LogInformation("Found {Count} active addresses for user {UserId}", activeAddresses.Count, request.UserId);
+
                 var totalCount = activeAddresses.Count;
                 var totalPages = (int)Math.Ceiling(totalCount / (double)request.PageSize);
 
@@ -60,7 +60,6 @@ namespace UserProfileService.Features.Queries.ListDeliveryAddresses
                     .Take(request.PageSize)
                     .ToList();
 
-          
                 var addressDtos = pagedAddresses.Select(address => new AddressDto
                 {
                     Id = address.Id,
@@ -84,10 +83,6 @@ namespace UserProfileService.Features.Queries.ListDeliveryAddresses
                     TotalCount = totalCount,
                     TotalPages = totalPages
                 };
-
-                _logger.LogInformation(
-                    "Retrieved {Count} addresses for user {UserId}, page {PageNumber}",
-                    addressDtos.Count, request.UserId, request.PageNumber);
 
                 return ApiResponse<PaginatedResponse<AddressDto>>.Success(response);
             }

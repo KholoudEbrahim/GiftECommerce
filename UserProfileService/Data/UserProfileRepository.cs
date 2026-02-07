@@ -17,17 +17,15 @@ namespace UserProfileService.Data
             CancellationToken cancellationToken = default)
         {
             return await _context.UserProfiles
-                .AsTracking()
-                .FirstOrDefaultAsync(
-                    p => p.UserId == userId,
-                    cancellationToken);
+                .Include(p => p.DeliveryAddresses) 
+                .FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
         }
 
-        public async Task<UserProfile?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<UserProfile?> GetByIdAsync(Guid userId, CancellationToken cancellationToken = default)
         {
             return await _context.UserProfiles
                 .Include(p => p.DeliveryAddresses)
-                .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(p => p.Id == userId, cancellationToken);
         }
 
         public async Task AddAsync(UserProfile userProfile, CancellationToken cancellationToken = default)
